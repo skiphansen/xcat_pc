@@ -1,6 +1,22 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.6  2005/01/08 19:30:06  Skip
+// 1. Replaced CCommSetup with new dialog that allows XCat's address and
+//    baudrate to be configured.
+// 2. Added code to read Xcat's configuration and mode data at program
+//    startup so VFO tab will have current data.
+// 3. Added code to ManualPage to set dialog values based on code plug data
+//    when it is available.
+// 4. Added support for inverted mode select switches.
+// 5. Enabled recall model button on maual page. Previously it was only enabled
+//    in debug mode.
+// 6. Added display of invalid frame counter to sync data debug output.
+// 7. Replaced recall mode dialog with new class that supports labeling modes.
+// 8. Added ability to save and reload mode labels.
+//
+// 6.
+//
 // Revision 1.5  2004/12/31 00:49:18  Skip
 // Version 0.14 changes:
 // 1. Disabled signal reports in debug screen.
@@ -36,8 +52,8 @@
 #define CONFIG_BAND_MASK 7
 #define CONFIG_10M      0
 #define CONFIG_6M       1
-#define CONFIG_2M       2
-#define CONFIG_10_6M    3
+#define CONFIG_10_6M    2
+#define CONFIG_2M       3
 #define CONFIG_440      4
 
 #define CONFIG_CTRL_MASK 0x3
@@ -60,6 +76,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 HWND hMainWindow;
+
+unsigned int ctable[4] = { 0, 1, 3, 2 };
 
 void SetButtonMode(int OrigID,int ID,const char *Label,bool bEnabled,bool bHide)
 {
@@ -130,7 +148,7 @@ CXcatDlg::CXcatDlg(LPCTSTR pszCaption, CWnd* pParentWnd, UINT iSelectPage)
    AddPage(&ManualPage);
    AddPage(&ScanPage);
    AddPage(&BandScan);
-   AddPage(&CCommSetup);
+   AddPage(&CommSetup);
    AddPage(&Configure);
    if(gDebugMode) {
       AddPage(&DebugMsgs);
@@ -159,12 +177,6 @@ END_MESSAGE_MAP()
 BOOL CXcatDlg::OnInitDialog() 
 {
    BOOL bResult = CPropertySheet::OnInitDialog();
-#if 0
-   GetDlgItem(IDOK)->ShowWindow(SW_HIDE);
-   GetDlgItem(IDCANCEL)->ShowWindow(SW_HIDE);
-   GetDlgItem(ID_APPLY_NOW)->ShowWindow(SW_HIDE);
-   GetDlgItem(IDHELP)->ShowWindow(SW_HIDE);
-#endif
    
    hMainWindow = m_hWnd;
    if(!CComm.Init(gComPort,gBaudrate)) {
@@ -184,10 +196,9 @@ BOOL CXcatDlg::OnInitDialog()
       AfxMessageBox("Fatal error: Unable to create timer.");
       PostMessage(WM_QUIT,0,0);
    }
-#if 0
-   CComm.SetVCOSplits(0x01234567,0x89abcdef);
-   CComm.GetVCOSplits();
-#endif
+
+   CComm.GetConfig();
+	CComm.GetModeData();
 
    return bResult;
 }
@@ -202,7 +213,11 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
       switch(pMsg->Data[0]) {
          case 0x80:  // response to get vfo raw data
             memcpy(gModeData,&pMsg->Data[1],sizeof(gModeData));
-            if(GetActivePage() == &ScanPage) {
+				g_bHaveModeData = TRUE;
+            if(g_bHaveConfig && GetActivePage() == &ManualPage) {
+					ManualPage.ModeData();
+				}
+            else if(GetActivePage() == &ScanPage) {
 					ScanPage.ModeData();
 				}
             else if(GetActivePage() == &DebugMsgs) {
@@ -217,14 +232,15 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
             if(pMsg->Data[2]) {
             // Carrier detected
                bHaveSignal = TRUE;
-               CString Mode;
+               CString Temp;
                if(BandScan.m_bScanActive && pMsg->Data[1] == 0) {
-                  Mode.Format("%3.4f",BandScan.mCurrentFreq);
+                  Temp.Format("%3.4f",BandScan.mCurrentFreq);
                }
                else {
-                  Mode.Format("cat - Mode %d",pMsg->Data[1] + 1);
+						int Mode = INVERT_MODE(pMsg->Data[1]);
+						Temp.Format("%d: %s",Mode+1,gModeName[Mode]);
                }
-               SetTitle(Mode);
+               SetTitle(Temp);
             }
             else {
             // Carrier lost
@@ -255,7 +271,11 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 
          case 0x83:  // Get config
          {
-            Configure.ConfigMsgRx(&pMsg->Data[1]);
+            memcpy(gConfig,&pMsg->Data[1],CONFIG_LEN);
+				g_bHaveConfig = TRUE;
+            if(GetActivePage() == &Configure) {
+					Configure.ConfigMsgRx(&pMsg->Data[1]);
+				}
             break;
          }
 
@@ -283,6 +303,23 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
             }
             break;
          }
+
+			case 0x8a:	// Ack for communications parameter set message
+				gXcatAdr = CommSetup.mNewXcatAdr;
+				if(gBaudrate != CommSetup.mNewBaudrate || 
+					gComPort != CommSetup.mNewComPort) 
+				{
+					gBaudrate = CommSetup.mNewBaudrate;
+					gComPort = CommSetup.mNewComPort;
+					if(!CComm.Init(gComPort,gBaudrate)) {
+						CString ErrMsg;
+						ErrMsg.Format("Unable to open COM%d,\n"
+										  "please check that no other\n"
+										  "programs are using COM%d.",gComPort,gComPort);
+						AfxMessageBox(ErrMsg);
+					}
+				}
+				break;
       }
    }
 
@@ -382,6 +419,21 @@ void FillPLBox(CComboBox* pCB,char *NoToneString)
    }
 }
 
+int FindPl(double pl)
+{
+	float Freq;
+
+	for(int i = 0; PLTones[i] != NULL; i++) {
+		sscanf(PLTones[i],"%f",&Freq);
+		if(fabs(Freq - pl) < .05) {
+		// Close enough for government work
+			return i + 1;
+		}
+	}
+
+	return 0;
+}
+
 BOOL ManualPage::OnInitDialog() 
 {
    CPropertyPage::OnInitDialog();
@@ -403,10 +455,15 @@ BOOL ManualPage::OnSetActive()
 {
    SetButtonMode(IDOK,ID_MANUAL_SET,"Set",TRUE,FALSE);
    SetButtonMode(IDCANCEL,ID_SAVE_MODE,"Store",TRUE,FALSE);
-   SetButtonMode(ID_APPLY_NOW,ID_RECALL_MODE,"Recall",TRUE,!gDebugMode);
+   SetButtonMode(ID_APPLY_NOW,ID_RECALL_MODE,"Recall",TRUE,FALSE);
    SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
    
    mForcedSet = TRUE;
+
+	if(g_bHaveConfig && g_bHaveModeData) {
+		ModeData();
+	}
+
    return CPropertyPage::OnSetActive();
 }
 
@@ -468,7 +525,7 @@ void ManualPage::OnSaveMode()
 
    OnManualSet();
    if(dlg.DoModal() == IDOK) {
-      CComm.SelectMode(dlg.mMode);
+      CComm.SelectMode(gLastModeSel);
       CComm.StoreVFO();
    }
 }
@@ -479,9 +536,150 @@ void ManualPage::OnRecallMode()
 
    if(dlg.DoModal() == IDOK) {
       mForcedSet = TRUE; // send everything next time !
-      CComm.SelectMode(dlg.mMode);
+      CComm.SelectMode(gLastModeSel);
       CComm.RecallMode();
+		CComm.GetModeData();
    }
+}
+
+// Decode mode data and set controls
+void ManualPage::ModeData()
+{
+	unsigned int txa, txb, txc, txv;
+	unsigned int rxa, rxb, rxc, rxv;
+	unsigned int refreq;
+	unsigned int bits;
+	int fvco;
+	int frx = 0;
+	int ftx = 0;
+	double pl;
+   double   TxOffsetFreq;
+
+// Send everything on the next set
+	mForcedSet = TRUE;
+	switch(gModeData[8] & 0x03)
+	{
+		case 0:
+			refreq = 6250;
+			break;
+		case 1:
+			refreq = 0;
+			break;
+		case 2:
+			refreq = 4166;
+			break;
+		case 3:
+			refreq = 5000;
+			break;
+	}
+
+	// Calculate current receive frequency
+
+	txv = (gModeData[11] & 0x00c0) >> 6;
+	txc = (gModeData[11] & 0x0030) >> 4;
+	rxv = (gModeData[11] & 0x000c) >> 2;
+	rxc = (gModeData[11] & 0x0003);
+	txb = (gModeData[12] & 0x00f0) << 2;
+	rxb = (gModeData[12] & 0x000f) << 6;
+	txb |= (gModeData[13] & 0x00f0) >> 2;
+	rxb |= (gModeData[13] & 0x000f) << 2;
+	txb |= (gModeData[14] & 0x00c0) >> 6;
+	rxb |= (gModeData[14] & 0x000c) >> 2;
+	txa = gModeData[14] & 0x0030;
+	rxa = (gModeData[14] & 0x0003) << 4;
+	txa |= (gModeData[15] & 0x00f0) >> 4;
+	rxa |= gModeData[15] & 0x000f;
+
+	switch(gConfig[0] & CONFIG_BAND_MASK)
+	{
+		case CONFIG_10M:
+		case CONFIG_6M:
+		case CONFIG_10_6M:
+			fvco = ((64 * rxa) + (63 * rxb)) * refreq;
+			frx = fvco - 75700000;
+			fvco = ((64 * txa) + (63 * txb)) * refreq;
+			ftx = 172800000 - fvco;
+			break;
+
+		case CONFIG_2M:
+			fvco = ((((64 * rxa) + (63 * rxb)) * 3) + ctable[rxc]) * refreq;
+			frx = fvco - 53900000;
+			fvco = ((((64 * txa) + (63 * txb)) * 3) + ctable[txc]) * refreq;
+			ftx = fvco;
+			break;
+
+		case CONFIG_440:
+			fvco = ((((64 * rxa) + (63 * rxb)) * 3) + ctable[rxc]) * refreq;
+			frx = fvco + 53900000;
+			fvco = ((((64 * txa) + (63 * txb)) * 3) + ctable[txc]) * refreq;
+			ftx = fvco;
+			break;
+	}
+
+	if(ftx != 0 && frx != 0) {
+		mRxFrequency = (double) frx / 1000000.0;
+		gRxFrequency = mRxFrequency;
+		TxOffsetFreq = ((double) ftx / 1000000.0) - mRxFrequency;
+
+		if(TxOffsetFreq < 0) {
+		// Negative offset
+			gTxOffsetFreq = mTxOffsetFreq = -TxOffsetFreq; 
+			mTxOffset.SetCurSel(2);
+		}
+		else if(TxOffsetFreq > 0) {
+		// Positive offset
+			gTxOffsetFreq = mTxOffsetFreq = TxOffsetFreq; 
+			mTxOffset.SetCurSel(0);
+		}
+		else {
+		// Simplex
+			mTxOffset.SetCurSel(1);
+		}
+
+	}
+
+// Decode Tx Pl tone
+	switch((gModeData[5] & 0x60) >> 5)
+	{
+		case 3:	/* DPL (not currently supported) */
+		case 2:	/* NONE */
+			mTxPL.SetCurSel(0);
+			break;
+
+		case 1:	/* PL */
+			/* yes, it's supposed to fall through */
+		case 0:	/* PL */
+			{
+				bits = gModeData[4];
+				bits |= (gModeData[5] & 0x3f) << 8;
+				pl = (float)(~bits & 0x3fff) / 18.0616;
+				mTxPL.SetCurSel(FindPl(pl));
+			}
+			break;
+	}
+	
+// Decode Rx Pl tone
+
+	switch((gModeData[7] & 0x60) >> 5)
+	{
+		case 3:	/* DPL (not currently supported) */
+		case 2:	/* NONE */
+			mRxPL.SetCurSel(0);
+			break;
+
+		case 1:	/* PL */
+			/* yes, it's supposed to fall through */
+		case 0:	/* PL */
+			{
+				bits = gModeData[6];
+				bits |= (gModeData[7] & 0x3f) << 8;
+				pl = (float)(~bits & 0x3fff) / 61.17;
+				mRxPL.SetCurSel(FindPl(pl));
+			}
+			break;
+	}
+
+	UpdateData(FALSE);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -601,8 +799,9 @@ BOOL CScanEnable::OnSetActive()
    SetButtonMode(ID_APPLY_NOW,ID_RECALL_MODE,"Recall",TRUE,FALSE);
    SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
    
-   CComm.GetModeData();
-
+	if(g_bHaveModeData) {
+		ModeData();
+	}
    return CPropertyPage::OnSetActive();
 }
 
@@ -610,17 +809,21 @@ BOOL CScanEnable::OnSetActive()
 void CScanEnable::ModeData()
 {
    CButton *pRB;
+	int x;
 
    switch(gModeData[9] & SYNTOR_SCAN_TYPE_MASK) {
       case SYNTOR_SCAN_TYPE_DOUBLE:
          m_bScanEnabled = TRUE;
-         mPriorityMode.SetCurSel((gModeData[0xa] & SYNTOR_32MODE_MASK) + 1);
-         m2ndPriorityMode.SetCurSel((gModeData[9] & SYNTOR_32MODE_MASK) + 1);
+			x = INVERT_MODE(gModeData[0xa] & SYNTOR_32MODE_MASK);
+         mPriorityMode.SetCurSel(x+1);
+         x = INVERT_MODE(gModeData[9] & SYNTOR_32MODE_MASK);
+         m2ndPriorityMode.SetCurSel(x+1);
          break;
 
       case SYNTOR_SCAN_TYPE_SINGLE:
          m_bScanEnabled = TRUE;
-         mPriorityMode.SetCurSel((gModeData[0xa] & SYNTOR_32MODE_MASK) + 1);
+         x = INVERT_MODE(gModeData[0xa] & SYNTOR_32MODE_MASK);
+         mPriorityMode.SetCurSel(x+1);
          m2ndPriorityMode.SetCurSel(0);
          break;
 
@@ -653,13 +856,23 @@ void CScanEnable::ModeData()
    }
 
    int NPBits = (gModeData[0] << 24) | (gModeData[1] << 16) | (gModeData[2] << 8) | gModeData[3];
-   unsigned int Mask = 0x80000000;
 
-   for(int i = 0; i < 32; i++) {
-      pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
-      pRB->SetCheck(NPBits & Mask ? FALSE : TRUE);
-      Mask >>= 1;
-   }
+   if(gInvertedModeSel) {
+		unsigned int Mask = 1;
+		for(int i = 0; i < 32; i++) {
+			pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
+			pRB->SetCheck(NPBits & Mask ? FALSE : TRUE);
+			Mask <<= 1;
+		}
+	}
+	else {
+		unsigned int Mask = 0x80000000;
+		for(int i = 0; i < 32; i++) {
+			pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
+			pRB->SetCheck(NPBits & Mask ? FALSE : TRUE);
+			Mask >>= 1;
+		}
+	}
    UpdateData(FALSE);
    EnableDisableControls();
 }
@@ -669,17 +882,22 @@ void CScanEnable::OnManualSet()
    UpdateData(TRUE);
 
    int NPBits = 0xffffffff;
-   unsigned int Mask = 0x80000000;
 
    CButton *pRB;
 
-   for(int i = 0; i < 32; i++) {
-      pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
-      if(pRB->GetCheck()) {
-         NPBits &= ~Mask;
-      }
-      Mask >>= 1;
-   }
+	unsigned int Mask = gInvertedModeSel ? 1 : 0x80000000;
+	for(int i = 0; i < 32; i++) {
+		pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
+		if(pRB->GetCheck()) {
+			NPBits &= ~Mask;
+		}
+		if(gInvertedModeSel) {
+			Mask <<= 1;
+		}
+		else {
+			Mask >>= 1;
+		}
+	}
 
    gModeData[0] = (unsigned char) ((NPBits >> 24) & 0xff);
    gModeData[1] = (unsigned char) ((NPBits >> 16) & 0xff);
@@ -715,13 +933,13 @@ void CScanEnable::OnManualSet()
       else if(SecondPrioritySel == 0) {
       // No 2nd priority channel selected
          gModeData[9] |= SYNTOR_SCAN_TYPE_SINGLE;
-         gModeData[0xa] |= (PrioritySel - 1);
+         gModeData[0xa] |= INVERT_MODE(PrioritySel - 1);
       }
       else {
       // Both priority channels selected
          gModeData[9] |= SYNTOR_SCAN_TYPE_DOUBLE;
-         gModeData[9] |= (SecondPrioritySel - 1);
-         gModeData[0xa] |= (PrioritySel - 1);
+         gModeData[9] |= INVERT_MODE(SecondPrioritySel - 1);
+         gModeData[0xa] |= INVERT_MODE(PrioritySel - 1);
       }
    }
    else {
@@ -762,7 +980,7 @@ void CScanEnable::OnSaveMode()
 
    OnManualSet();
    if(dlg.DoModal() == IDOK) {
-      CComm.SelectMode(dlg.mMode);
+      CComm.SelectMode(gLastModeSel);
       CComm.StoreVFO();
    }
 }
@@ -772,7 +990,7 @@ void CScanEnable::OnRecallMode()
    CModeSel dlg;
 
    if(dlg.DoModal() == IDOK) {
-      CComm.SelectMode(dlg.mMode);
+      CComm.SelectMode(gLastModeSel);
       CComm.RecallMode();
       CComm.GetModeData();
    }
@@ -1474,13 +1692,16 @@ void CDebugMsgs::SyncDebugData(unsigned char *Data)
 	Temp.Format("\r\nTotal frames %d\r\n",Data[6]);
 	Text += Temp;
 	
+	Temp.Format("Invalid frames %d\r\n",Data[10]);
+	Text += Temp;
+	
 	Temp.Format("Frames that successfully set rx frequency %d\r\n",Data[8]);
 	Text += Temp;
 
 	Temp.Format("Frames that successfully set tx frequency %d\r\n",Data[9]);
 	Text += Temp;
 
-	Temp.Format("Serial input disabled after %d bits\r\n",Data[7]);
+	Temp.Format("Serial input is disabled after %d bits\r\n",Data[7]);
 	Text += Temp;
    
 	mEdit.SetWindowText(Text);
@@ -1578,61 +1799,60 @@ void CConfigure::OnGetConfig()
 void CConfigure::OnSetConfig()
 {
    UpdateData(TRUE);
-   int Config[2];
 
-   Config[0] = mBand.GetCurSel();
+   gConfig[0] = mBand.GetCurSel();
 
    switch(mControlSys.GetCurSel()) {
       case 0:  // No control system
          break;
 
       case 1:  // Doug Hall
-         Config[0] |= 0x10;
+         gConfig[0] |= 0x10;
          break;
 
       case 2:  // Palomar Telecom / Cactus / Remote base #1
-         Config[0] |= 0x20;
+         gConfig[0] |= 0x20;
          break;
 
       case 3:  // Palomar Telecom / Cactus / Remote base #2
-         Config[0] |= 0x60;
+         gConfig[0] |= 0x60;
          break;
 
       case 4:  // Palomar Telecom / Cactus / Remote base #3
-         Config[0] |= 0xa0;
+         gConfig[0] |= 0xa0;
          break;
 
       case 5:  // Palomar Telecom / Cactus / Remote base #4
-         Config[0] |= 0xe0;
+         gConfig[0] |= 0xe0;
          break;
    }
    
    if(mSendCosMsg) {
-      Config[0] |= 8;
+      gConfig[0] |= 8;
    }
 
-   Config[1] = 0xff;
+   gConfig[1] = 0xff;
 
    if(!mOut0.GetCurSel()) {
-      Config[1] &= ~1;
+      gConfig[1] &= ~1;
    }
 
    if(!mOut1.GetCurSel()) {
-      Config[1] &= ~2;
+      gConfig[1] &= ~2;
    }
 
    if(!mOut2.GetCurSel()) {
-      Config[1] &= ~4;
+      gConfig[1] &= ~4;
    }
 
    if(!mOut5.GetCurSel()) {
-      Config[1] &= ~0x20;
+      gConfig[1] &= ~0x20;
    }
 
    unsigned char ConfigBytes[2];
 
-   ConfigBytes[0] = (unsigned char) Config[0];
-   ConfigBytes[1] = (unsigned char) Config[1];
+   ConfigBytes[0] = (unsigned char) gConfig[0];
+   ConfigBytes[1] = (unsigned char) gConfig[1];
 
    CComm.SetConfig(&ConfigBytes[0]);
    CComm.SetVCOSplits((unsigned int) (mRxVcoSplitFreq * 1e6),
@@ -1747,50 +1967,90 @@ void CConfigure::OnSelchangeBand()
 
 void CConfigure::OnSaveCodePlug()
 {
-   static char Filter[] = "Binary Files (*.bin)|*.bin|All Files (*.*)|*.*||";
-
-   CFileDialog dlg(FALSE,NULL,gSaveFilename,OFN_CREATEPROMPT|OFN_OVERWRITEPROMPT,
-                   Filter);
+   CXcatFileDialog dlg(FALSE,NULL,gSaveFilename,
+							  OFN_CREATEPROMPT|OFN_OVERWRITEPROMPT,NULL);
 
    if(dlg.DoModal() == IDOK) {
+		CString Temp;
+      Temp = dlg.GetFileExt();
+		Temp.MakeLower();
       gSaveFilename = dlg.GetPathName();
-      if((mFp = fopen(gSaveFilename,"wb")) == NULL) {
-         CString ErrMsg;
-         ErrMsg.Format("Open failed: %s",Err2String(errno));
-         AfxMessageBox(ErrMsg);
-      }
-      else {
-         mMode = 1;
-         m_bSaving = TRUE;
+		if(Temp == "bin") {
+		// Code plug data
+			if((mFp = fopen(gSaveFilename,"wb")) == NULL) {
+				CString ErrMsg;
+				ErrMsg.Format("Open failed: %s",Err2String(errno));
+				AfxMessageBox(ErrMsg);
+			}
+			else {
+				mMode = 1;
+				m_bSaving = TRUE;
 
-         mTransferStatus.SetWindowText("Saving Mode 1");
-
-         CComm.SelectMode(mMode);
-         CComm.RecallMode();
-         CComm.GetModeData();
-      }
+				mTransferStatus.SetWindowText("Saving Mode 1");
+			// NB: undo inverted mode stuff so we always save/restore the code
+			// plug data in the same (natural) order
+				CComm.SelectMode(INVERT_MODE(mMode-1)+1);
+				CComm.RecallMode();
+				CComm.GetModeData();
+			}
+		}
+		else if(Temp == "txt") {
+			if((mFp = fopen(gSaveFilename,"w")) == NULL) {
+				CString ErrMsg;
+				ErrMsg.Format("Open failed: %s",Err2String(errno));
+				AfxMessageBox(ErrMsg);
+			}
+			else {
+				for(int i = 0; i < 32; i++) {
+					fprintf(mFp,"%s\n",gModeName[i]);
+				}
+				fclose(mFp);
+				mFp = NULL;
+			}
+		}
    }
 }
 
 void CConfigure::OnRestoreCodePlug()
 {
-   static char Filter[] = "Binary Files (*.bin)|*.bin|All Files (*.*)|*.*||";
-
-   CFileDialog dlg(TRUE,NULL,gSaveFilename,OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,
-                   Filter);
+   CXcatFileDialog dlg(TRUE,NULL,gSaveFilename,OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,
+                       NULL);
 
    if(dlg.DoModal() == IDOK) {
+		CString Temp;
+      Temp = dlg.GetFileExt();
+		Temp.MakeLower();
       gRestoreFilename = dlg.GetPathName();
-      if((mFp = fopen(gRestoreFilename,"rb")) == NULL) {
-         CString ErrMsg;
-         ErrMsg.Format("Open failed: %s",Err2String(errno));
-         AfxMessageBox(ErrMsg);
-      }
-      else {
-         mMode = 1;
-         m_bSaving = FALSE;
-         SendModeData();
-      }
+		if(Temp == "bin") {
+		// Code plug data
+			if((mFp = fopen(gRestoreFilename,"rb")) == NULL) {
+				CString ErrMsg;
+				ErrMsg.Format("Open failed: %s",Err2String(errno));
+				AfxMessageBox(ErrMsg);
+			}
+			else {
+				mMode = 1;
+				m_bSaving = FALSE;
+				SendModeData();
+			}
+		}
+		else if(Temp == "txt") {
+			if((mFp = fopen(gRestoreFilename,"r")) == NULL) {
+				CString ErrMsg;
+				ErrMsg.Format("Open failed: %s",Err2String(errno));
+				AfxMessageBox(ErrMsg);
+			}
+			else {
+				char line[80];
+				for(int i = 0; i < 32; i++) {
+					fgets(line,sizeof(line),mFp);
+					line[strlen(line)-1] = 0;	// remove new line
+					gModeName[i] = line;
+				}
+				fclose(mFp);
+				mFp = NULL;
+			}
+		}
    }
 }
 
@@ -1818,7 +2078,9 @@ void CConfigure::ModeData(unsigned char *Data)
 
             Status.Format("Saving Mode %d",mMode);
             mTransferStatus.SetWindowText(Status);
-            CComm.SelectMode(mMode);
+			// NB: undo inverted mode stuff so we always save/restore the code
+			// plug data in the same (natural) order
+				CComm.SelectMode(INVERT_MODE(mMode-1)+1);
             CComm.RecallMode();
             CComm.GetModeData();
          }
@@ -1874,7 +2136,9 @@ void CConfigure::SendModeData()
       // Download new data
          CComm.SetModeData(mModeData);
       // Select the mode
-         CComm.SelectMode(mMode);
+		// NB: undo inverted mode stuff so we always save/restore the code
+		// plug data in the same (natural) order
+         CComm.SelectMode(INVERT_MODE(mMode-1)+1);
       // Write it
          CComm.StoreVFO();
       // Read it
@@ -1884,42 +2148,6 @@ void CConfigure::SendModeData()
       }
    }
 }
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-// CModeSel dialog
-
-
-CModeSel::CModeSel(CWnd* pParent /*=NULL*/)
-   : CDialog(CModeSel::IDD, pParent)
-{
-   //{{AFX_DATA_INIT(CModeSel)
-   mMode = 1;
-   //}}AFX_DATA_INIT
-}
-
-
-void CModeSel::DoDataExchange(CDataExchange* pDX)
-{
-   CDialog::DoDataExchange(pDX);
-   //{{AFX_DATA_MAP(CModeSel)
-   DDX_Text(pDX, IDC_MODE, mMode);
-   DDV_MinMaxUInt(pDX, mMode, 1, 32);
-   //}}AFX_DATA_MAP
-}
-
-
-BEGIN_MESSAGE_MAP(CModeSel, CDialog)
-   //{{AFX_MSG_MAP(CModeSel)
-   //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-/////////////////////////////////////////////////////////////////////////////
-// CModeSel message handlers
-
-
-
 
 BOOL CAbout::OnInitDialog() 
 {
@@ -1934,4 +2162,350 @@ BOOL CAbout::OnInitDialog()
                  // EXCEPTION: OCX Property Pages should return FALSE
 }
 
+
+/////////////////////////////////////////////////////////////////////////////
+// CModeSel dialog
+
+
+CModeSel::CModeSel(CWnd* pParent /*=NULL*/)
+	: CDialog(CModeSel::IDD, pParent)
+{
+	//{{AFX_DATA_INIT(CModeSel)
+		// NOTE: the ClassWizard will add member initialization here
+	//}}AFX_DATA_INIT
+}
+
+
+void CModeSel::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CModeSel)
+	DDX_Control(pDX, IDC_MODE, mMode);
+	//}}AFX_DATA_MAP
+}
+
+
+BEGIN_MESSAGE_MAP(CModeSel, CDialog)
+	//{{AFX_MSG_MAP(CModeSel)
+	ON_BN_CLICKED(IDC_EDIT_NAME, OnEditName)
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CModeSel message handlers
+
+void CModeSel::OnEditName() 
+{
+	CEditModeName dlg;
+	int Index = mMode.GetCurSel();
+
+	dlg.mName = gModeName[Index];
+
+   if(dlg.DoModal() == IDOK) {
+		CString Temp;
+		
+		gModeName[Index] = dlg.mName;
+		mMode.DeleteString(Index);
+		Temp.Format("%d: %s",Index+1,gModeName[Index]);
+		mMode.InsertString(Index,Temp);
+		mMode.SetCurSel(Index);
+	}
+}
+
+BOOL CModeSel::OnInitDialog() 
+{
+	CDialog::OnInitDialog();
+	
+	mMode.ResetContent();
+	for(int i = 0; i < 32; i++) {
+		CString Temp;
+
+		Temp.Format("%d: %s",i+1,gModeName[i]);
+		mMode.InsertString(-1,Temp);
+	}
+	mMode.SetCurSel(gLastModeSel-1);
+	return TRUE;
+}
+
+
+void CModeSel::OnOK() 
+{
+	gLastModeSel = mMode.GetCurSel() + 1;
+	
+	CDialog::OnOK();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CEditModeName dialog
+
+
+CEditModeName::CEditModeName(CWnd* pParent /*=NULL*/)
+	: CDialog(CEditModeName::IDD, pParent)
+{
+	//{{AFX_DATA_INIT(CEditModeName)
+	mName = _T("");
+	//}}AFX_DATA_INIT
+}
+
+
+void CEditModeName::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CEditModeName)
+	DDX_Text(pDX, IDC_NAME, mName);
+	//}}AFX_DATA_MAP
+}
+
+
+BEGIN_MESSAGE_MAP(CEditModeName, CDialog)
+	//{{AFX_MSG_MAP(CEditModeName)
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CEditModeName message handlers
+
+/////////////////////////////////////////////////////////////////////////////
+// CXcatFileDialog
+
+IMPLEMENT_DYNAMIC(CXcatFileDialog, CFileDialog)
+static char XCatFilter[] = "Code plug binary (*.bin)|*.bin|"
+	                        "Mode Names (*.txt)|*.txt||";
+
+CXcatFileDialog::CXcatFileDialog(BOOL bOpenFileDialog, LPCTSTR lpszDefExt, LPCTSTR lpszFileName,
+		DWORD dwFlags, LPCTSTR lpszFilter, CWnd* pParentWnd) :
+	CFileDialog(bOpenFileDialog, lpszDefExt, lpszFileName, dwFlags, XCatFilter, pParentWnd)
+{
+
+}
+
+
+BEGIN_MESSAGE_MAP(CXcatFileDialog, CFileDialog)
+	//{{AFX_MSG_MAP(CXcatFileDialog)
+		// NOTE - the ClassWizard will add and remove mapping macros here.
+	//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+
+BOOL CXcatFileDialog::OnFileNameOK()
+{
+	BOOL Ret = FALSE;
+	CString Temp;
+	
+	Temp = GetFileExt();
+	Temp.MakeLower();
+	
+	if(Temp != "bin" && Temp != "txt") {
+		AfxMessageBox("Error: Invalid extension.\n\n"
+						  "Please use a .bin extension for code plug data\n"
+						  "or a .txt extension for mode label files.");
+		Ret = TRUE;
+	}
+
+	return Ret;
+}
+/////////////////////////////////////////////////////////////////////////////
+// CCommSetup1 dialog
+
+IMPLEMENT_DYNCREATE(CCommSetup1, CPropertyPage)
+
+CCommSetup1::CCommSetup1() : CPropertyPage(CCommSetup1::IDD)
+{
+	//{{AFX_DATA_INIT(CCommSetup1)
+	mXCatAdr = _T("");
+	//}}AFX_DATA_INIT
+}
+
+
+void CCommSetup1::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CCommSetup1)
+	DDX_Text(pDX, IDC_XCAT_ADR, mXCatAdr);
+	DDV_MaxChars(pDX, mXCatAdr, 2);
+	//}}AFX_DATA_MAP
+}
+
+
+BEGIN_MESSAGE_MAP(CCommSetup1, CPropertyPage)
+	//{{AFX_MSG_MAP(CCommSetup1)
+	//}}AFX_MSG_MAP
+   ON_BN_CLICKED(ID_SET_XCAT_ADR,OnSet)
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CCommSetup1 message handlers
+
+BOOL CCommSetup1::OnInitDialog() 
+{
+   CComboBox *pCB = (CComboBox*) GetDlgItem(IDC_COM_PORT);
+
+   CDialog::OnInitDialog();
+   
+   pCB->ResetContent();
+
+   int Index = 1;
+
+   memset(mPortLookup,sizeof(mPortLookup),0);
+
+   for(UINT i = 0; i < MAX_COM_PORTS; i++) {
+      CString ComString;
+      int bPortExists = 0;
+      if(i == 0) {
+         ComString = "Not Configured";
+      }
+      else {
+         ComString.Format("COM%d",i);
+         HANDLE idComDev = CreateFile(ComString,GENERIC_READ | GENERIC_WRITE,0,
+                                      NULL,OPEN_EXISTING,FILE_FLAG_OVERLAPPED,0);
+         if(idComDev == INVALID_HANDLE_VALUE) {
+            DWORD err = GetLastError();
+            if(err == ERROR_ACCESS_DENIED) {
+            // Port exists, but is in use
+               bPortExists = 1;
+            }
+         }
+         else{
+            // close the port
+            CloseHandle(idComDev);
+            bPortExists = 1;
+         }
+
+         if(!bPortExists) {
+            continue;
+         }
+         mPortLookup[Index++] = i;
+      }
+      pCB->InsertString(-1,ComString);
+   }
+
+   for(i = 0; i < MAX_COM_PORTS; i++) {
+      if(mPortLookup[i] == gComPort) {
+         pCB->SetCurSel(i);
+         break;
+      }
+   }
+
+   if(i == MAX_COM_PORTS) {
+   // didn't find the port
+      pCB->SetCurSel(0);
+   }
+
+	int BaudRateSel;
+	switch(gBaudrate) {
+		case 1200:
+			BaudRateSel = 0;
+			break;
+
+		case 2400:
+			BaudRateSel = 1;
+			break;
+
+		case 4800:
+			BaudRateSel = 2;
+			break;
+
+		case 9600:
+			BaudRateSel = 3;
+			break;
+
+		default:
+			gBaudrate = 19200;
+		// Intentional fall through
+		case 19200:
+			BaudRateSel = 4;
+			break;
+	}
+
+   pCB = (CComboBox*) GetDlgItem(IDC_BAUDRATE);
+	pCB->SetCurSel(BaudRateSel);
+
+	mXCatAdr.Format("%02X",gXcatAdr);
+
+   UpdateData(FALSE);
+   
+   return TRUE;
+}
+
+BOOL CCommSetup1::OnSetActive() 
+{
+   SetButtonMode(IDOK,ID_SET_XCAT_ADR,"Set",TRUE,FALSE);
+   SetButtonMode(IDCANCEL,0,NULL,FALSE,TRUE);
+   SetButtonMode(ID_APPLY_NOW,0,NULL,FALSE,TRUE);
+   SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
+   
+	return CPropertyPage::OnSetActive();
+}
+
+void CCommSetup1::OnSet() 
+{
+   UpdateData(TRUE);
+	int bReInitializeComm = FALSE;
+	int bSendXcatCommConfig = FALSE;
+	int bBaudrateChanged = FALSE;
+	int bComPortChanged = FALSE;
+	int BaudSel;
+
+	if(sscanf((LPCSTR) mXCatAdr,"%x",&mNewXcatAdr) != 1) {
+      CString ErrMsg;
+      ErrMsg.Format("Error: the Xcat CI-V address is invalid.\n"
+						  "Please enter a valid Hex address.");
+      AfxMessageBox(ErrMsg);
+	}
+	else {
+		CComboBox *pCB = (CComboBox*) GetDlgItem(IDC_COM_PORT);
+		mNewComPort = mPortLookup[pCB->GetCurSel()];
+		pCB = (CComboBox*) GetDlgItem(IDC_BAUDRATE);
+		switch(BaudSel = pCB->GetCurSel()) {
+			case 0:	// 1200 baud
+				mNewBaudrate = 1200;
+				break;
+
+			case 1:	// 2400 baud
+				mNewBaudrate = 2400;
+				break;
+
+			case 2:	// 4800 baud
+				mNewBaudrate = 4800;
+				break;
+
+			case 3:	// 9600 baud
+				mNewBaudrate = 9600;
+				break;
+
+			case 4:	// 19200 baud
+				mNewBaudrate = 19200;
+				break;
+		}
+
+		if((mNewXcatAdr != gXcatAdr || mNewBaudrate != gBaudrate) &&
+			CComm.CommunicationsUp())
+		{	// Change communications parameters on Xcat
+				CComm.SetCommParameters(BaudSel,mNewXcatAdr);
+		}
+		else {
+		// We don't need to change communications parameters on Xcat or 
+		// We can't seem to be able to talk to the Xcat at the moment...
+			gXcatAdr = mNewXcatAdr;
+			if(gBaudrate != mNewBaudrate || gComPort != mNewComPort) {
+				if(!CComm.Init(mNewComPort,mNewBaudrate)) {
+					CString ErrMsg;
+					ErrMsg.Format("Unable to open COM%d,\n"
+									  "please check that no other\n"
+									  "programs are using COM%d.",mNewComPort,mNewComPort);
+					AfxMessageBox(ErrMsg);
+				}
+				else {
+					gComPort = mNewComPort;
+					gBaudrate = mNewBaudrate;
+
+				// Send something to the Xcat to check the communications line
+					CComm.GetConfig();
+				}
+			}
+		}
+
+		CPropertyPage::OnOK();
+	}
+}
 
