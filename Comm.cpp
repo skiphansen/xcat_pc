@@ -1,4 +1,7 @@
 // $Log: Comm.cpp,v $
+// Revision 1.6  2005/01/08 19:17:32  Skip
+// "The Xcat is Naked" -> "The Xcat Naked".
+//
 // Revision 1.5  2005/01/06 16:06:25  Skip
 // 1. Modified Init() to wait for communications thread to start running before
 //    returning.  Fixes ASSERT failures when SendNextMessage() is called
@@ -541,7 +544,7 @@ void Comm::ProcessRx()
                      // Nak
                         if(mTxHead != NULL && mTxHead->Hdr.Cmd != 5) {
                            CString *pErrMsg = new CString;
-                           pErrMsg->Format("The Xcat is NAK'ed\n"
+                           pErrMsg->Format("The Xcat NAK'ed\n"
                                            "Command: 0x%02X, 0x%02X\n",
                                            mTxHead->Hdr.Cmd,mTxHead->Data[0]);
                            if(!m_pMainWnd->PostMessage(ID_COMM_ERROR,0,
