@@ -1,6 +1,12 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.5  2004/12/31 00:49:18  Skip
+// Version 0.14 changes:
+// 1. Disabled signal reports in debug screen.
+// 2. Added display of successfully rx, tx frequency sets to sync data
+//    debug screen.
+//
 // Revision 1.4  2004/12/27 05:55:24  Skip
 // Version 0.13:
 // 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
@@ -231,7 +237,9 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
                BandScan.CarrierDetectChange(bHaveSignal);
             }
 				else if(GetActivePage() == &DebugMsgs) {
+#if 0
                DebugMsgs.SignalReport(pMsg->Data[1],pMsg->Data[2]);
+#endif
 				}
             break;
 
@@ -1463,11 +1471,19 @@ void CDebugMsgs::SyncDebugData(unsigned char *Data)
       Temp.Format("%02X ",Data[i]);
 		Text += Temp;
    }
-	Temp.Format("\r\nTotal frames %d\r\nSerial input disabled after %d bits",
-					Data[6],Data[7]);
+	Temp.Format("\r\nTotal frames %d\r\n",Data[6]);
+	Text += Temp;
+	
+	Temp.Format("Frames that successfully set rx frequency %d\r\n",Data[8]);
 	Text += Temp;
 
-   mEdit.SetWindowText(Text);
+	Temp.Format("Frames that successfully set tx frequency %d\r\n",Data[9]);
+	Text += Temp;
+
+	Temp.Format("Serial input disabled after %d bits\r\n",Data[7]);
+	Text += Temp;
+   
+	mEdit.SetWindowText(Text);
 }
 
 void CDebugMsgs::SignalReport(int Mode,int bSignal)
