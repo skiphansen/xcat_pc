@@ -1,6 +1,10 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.4  2005/01/08 19:19:50  Skip
+// Added global variables ModeName[], LastModelSel, gInvertedModeSel,
+// gConfig, and g_bHaveModeData.
+//
 // Revision 1.3  2004/08/28 22:31:31  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -81,7 +85,15 @@ int gDebugMode;
 int gXcatAdr;
 CString gSaveFilename;
 CString gRestoreFilename;
+CString gModeName[32];
+int gLastModeSel = 1;
+int gInvertedModeSel;
+
 unsigned char gModeData[16];
+int g_bHaveModeData = FALSE;
+
+unsigned char gConfig[CONFIG_LEN];
+int g_bHaveConfig = FALSE;
 
 RegVariable RegVars[] = {
    {"ComPort",&gComPort,REG_VAR_TYPE_INT,"1"},
@@ -99,6 +111,39 @@ RegVariable RegVars[] = {
    {"RestoreFilename",&gRestoreFilename,REG_VAR_TYPE_CSTRING,"codeplug.bin"},
    {"DebugMode",&gDebugMode,REG_VAR_TYPE_INT,"0"},
    {"gXcatAdr",&gXcatAdr,REG_VAR_TYPE_INT,"32"},
+   {"Mode1Name",&gModeName[0],REG_VAR_TYPE_CSTRING,"Mode 1"},
+   {"Mode2Name",&gModeName[1],REG_VAR_TYPE_CSTRING,"Mode 2"},
+   {"Mode3Name",&gModeName[2],REG_VAR_TYPE_CSTRING,"Mode 3"},
+   {"Mode4Name",&gModeName[3],REG_VAR_TYPE_CSTRING,"Mode 4"},
+   {"Mode5Name",&gModeName[4],REG_VAR_TYPE_CSTRING,"Mode 5"},
+   {"Mode6Name",&gModeName[5],REG_VAR_TYPE_CSTRING,"Mode 6"},
+   {"Mode7Name",&gModeName[6],REG_VAR_TYPE_CSTRING,"Mode 7"},
+   {"Mode8Name",&gModeName[7],REG_VAR_TYPE_CSTRING,"Mode 8"},
+   {"Mode9Name",&gModeName[8],REG_VAR_TYPE_CSTRING,"Mode 9"},
+   {"Mode10Name",&gModeName[9],REG_VAR_TYPE_CSTRING,"Mode 10"},
+   {"Mode11Name",&gModeName[10],REG_VAR_TYPE_CSTRING,"Mode 11"},
+   {"Mode12Name",&gModeName[11],REG_VAR_TYPE_CSTRING,"Mode 12"},
+   {"Mode13Name",&gModeName[12],REG_VAR_TYPE_CSTRING,"Mode 13"},
+   {"Mode14Name",&gModeName[13],REG_VAR_TYPE_CSTRING,"Mode 14"},
+   {"Mode15Name",&gModeName[14],REG_VAR_TYPE_CSTRING,"Mode 15"},
+   {"Mode16Name",&gModeName[15],REG_VAR_TYPE_CSTRING,"Mode 16"},
+   {"Mode17Name",&gModeName[16],REG_VAR_TYPE_CSTRING,"Mode 17"},
+   {"Mode18Name",&gModeName[17],REG_VAR_TYPE_CSTRING,"Mode 18"},
+   {"Mode19Name",&gModeName[18],REG_VAR_TYPE_CSTRING,"Mode 19"},
+   {"Mode20Name",&gModeName[19],REG_VAR_TYPE_CSTRING,"Mode 20"},
+   {"Mode21Name",&gModeName[20],REG_VAR_TYPE_CSTRING,"Mode 21"},
+   {"Mode22Name",&gModeName[21],REG_VAR_TYPE_CSTRING,"Mode 22"},
+   {"Mode23Name",&gModeName[22],REG_VAR_TYPE_CSTRING,"Mode 23"},
+   {"Mode24Name",&gModeName[23],REG_VAR_TYPE_CSTRING,"Mode 24"},
+   {"Mode25Name",&gModeName[24],REG_VAR_TYPE_CSTRING,"Mode 25"},
+   {"Mode26Name",&gModeName[25],REG_VAR_TYPE_CSTRING,"Mode 26"},
+   {"Mode27Name",&gModeName[26],REG_VAR_TYPE_CSTRING,"Mode 27"},
+   {"Mode28Name",&gModeName[27],REG_VAR_TYPE_CSTRING,"Mode 28"},
+   {"Mode29Name",&gModeName[28],REG_VAR_TYPE_CSTRING,"Mode 29"},
+   {"Mode30Name",&gModeName[29],REG_VAR_TYPE_CSTRING,"Mode 30"},
+   {"Mode31Name",&gModeName[30],REG_VAR_TYPE_CSTRING,"Mode 31"},
+   {"Mode32Name",&gModeName[31],REG_VAR_TYPE_CSTRING,"Mode 32"},
+   {"InvertedModeSel",&gInvertedModeSel,REG_VAR_TYPE_INT,"0"},
    {NULL}
 };
 
