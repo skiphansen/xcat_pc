@@ -1,10 +1,23 @@
 ####################################
-Changes in version 0.14 12/31/2004 (limited beta relase)
+Changes in version 0.15 1/8/2005
+
+New features:
+1. Added the ability to label modes by name.
+2. Added the ability to save and restore label name to the configuration
+   page.
+3. The VFO page now sets the initial dialog values based on code plug
+   data read from the Xcat.
+4. A recall mode button was added to the VFO page.
+5. The ability to set the Xcat's CI-V address and baudrate was added. 
+   (Requires Xcat firmware 0.13 or later)
+
+####################################
+Changes in version 0.14 12/31/2004 (limited beta release)
 
 Minor enhancements: 
-1. Disabled signal reports in debug screen.
+1. Disabled signal reports in debug page.
 2. Added display of successfully rx, tx frequency sets to sync data
-   debug screen.
+   debug page.
 
 ####################################
 Changes in version 0.13 12/27/2004 (limited beta release)
@@ -15,9 +28,8 @@ Minor enhancements:
    debug data.
 
 Bug fixes:
-1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
-   being called when not on the scan page.
-2. Corrected bug in configuration of remote base  #4 in Palomar mode.
+1. Fixed crash in Debug mode which occured when mode data was read.
+2. Corrected bug in configuration of Palomar remote base #4.
 
 ####################################
 Changes in version 0.12 8/28/2004
