@@ -170,6 +170,10 @@ SOURCE=.\res\xcat.rc2
 # End Group
 # Begin Source File
 
+SOURCE=.\changelog
+# End Source File
+# Begin Source File
+
 SOURCE=.\ReadMe.txt
 # End Source File
 # End Target

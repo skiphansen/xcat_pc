@@ -1,6 +1,10 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.3  2004/08/28 22:31:31  Skip
+// Added the ability to change the serial port baudrate and the address used
+// by the Xcat on the bus.
+//
 // Revision 1.2  2004/08/08 23:41:28  Skip
 // Complete implementation of mode scan.
 //
@@ -1108,8 +1112,8 @@ IMPLEMENT_DYNCREATE(CCommSetup, CPropertyPage)
 CCommSetup::CCommSetup() : CPropertyPage(CCommSetup::IDD)
 {
    //{{AFX_DATA_INIT(CCommSetup)
-      // NOTE: the ClassWizard will add member initialization here
-   //}}AFX_DATA_INIT
+	mXCatAdr = _T("");
+	//}}AFX_DATA_INIT
 }
 
 CCommSetup::~CCommSetup()
@@ -1120,8 +1124,9 @@ void CCommSetup::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(CCommSetup)
-      // NOTE: the ClassWizard will add DDX and DDV calls here
-   //}}AFX_DATA_MAP
+	DDX_Text(pDX, IDC_XCAT_ADR, mXCatAdr);
+	DDV_MaxChars(pDX, mXCatAdr, 2);
+	//}}AFX_DATA_MAP
 }
 
 
@@ -1134,6 +1139,7 @@ BEGIN_MESSAGE_MAP(CCommSetup, CPropertyPage)
    ON_BN_CLICKED(IDC_COM4, OnCom4)
    ON_BN_CLICKED(IDC_PROPERTIES, OnProperties)
    //}}AFX_MSG_MAP
+   ON_BN_CLICKED(ID_SET_XCAT_ADR,OnSet)
 END_MESSAGE_MAP()
 
 int CCommSetup::ComPortResourceID[] = {
@@ -1151,6 +1157,9 @@ BOOL CCommSetup::OnInitDialog()
    if(mComPort < 1 || mComPort > 4) // force to a valid range
       mComPort = 1;
    GrayCommButtons();
+	mXCatAdr.Format("%02X",gXcatAdr);
+   UpdateData(FALSE);
+
    return FALSE;  // focus set
 }
 
@@ -1209,7 +1218,7 @@ void CCommSetup::OnCom4()
 
 BOOL CCommSetup::OnSetActive() 
 {
-   SetButtonMode(IDOK,0,NULL,FALSE,TRUE);
+   SetButtonMode(IDOK,ID_SET_XCAT_ADR,"Set",TRUE,FALSE);
    SetButtonMode(IDCANCEL,0,NULL,FALSE,TRUE);
    SetButtonMode(ID_APPLY_NOW,0,NULL,FALSE,TRUE);
    SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
@@ -1225,13 +1234,35 @@ void CCommSetup::OnProperties()
    sprintf(ComString,"COM%d",mComPort);
    cc.dwSize = sizeof(cc);
    cc.wVersion = 1;
-   cc.dcb = mDcb;
+   cc.dcb = CComm.mDcb;
 
    if(CommConfigDialog(ComString,m_hWnd,&cc)) {
-      mDcb = cc.dcb;
+		gBaudrate = cc.dcb.BaudRate;
+		if(!CComm.Init(gComPort,gBaudrate)) {
+			CString ErrMsg;
+			ErrMsg.Format("Unable to open COM%d,\n"
+							  "please check that no other\n"
+							  "programs are using COM%d.",gComPort,gComPort);
+			AfxMessageBox(ErrMsg);
+		}
    }
 }
 
+
+void CCommSetup::OnSet() 
+{
+   UpdateData(TRUE);
+	
+	if(sscanf((LPCSTR) mXCatAdr,"%x",&gXcatAdr) != 1) {
+      CString ErrMsg;
+      ErrMsg.Format("Error: the Xcat CI-V address is invalid.\n"
+						  "Please enter a valid Hex address.");
+      AfxMessageBox(ErrMsg);
+	}
+	else {
+		CPropertyPage::OnOK();
+	}
+}
 
 void CXcatDlg::OnPaint() 
 {
@@ -1825,8 +1856,5 @@ BOOL CAbout::OnInitDialog()
    return TRUE;  // return TRUE unless you set the focus to a control
                  // EXCEPTION: OCX Property Pages should return FALSE
 }
-
-
-
 
 

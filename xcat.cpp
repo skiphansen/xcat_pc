@@ -1,6 +1,10 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.3  2004/08/28 22:31:31  Skip
+// Added the ability to change the serial port baudrate and the address used
+// by the Xcat on the bus.
+//
 // Revision 1.2  2004/08/08 23:41:28  Skip
 // Complete implementation of mode scan.
 //
@@ -74,6 +78,7 @@ int gRxCTSS;
 int gTxCTSS;
 int gTxOffset;
 int gDebugMode;
+int gXcatAdr;
 CString gSaveFilename;
 CString gRestoreFilename;
 unsigned char gModeData[16];
@@ -93,6 +98,7 @@ RegVariable RegVars[] = {
    {"SaveFilename",&gSaveFilename,REG_VAR_TYPE_CSTRING,"codeplug.bin"},
    {"RestoreFilename",&gRestoreFilename,REG_VAR_TYPE_CSTRING,"codeplug.bin"},
    {"DebugMode",&gDebugMode,REG_VAR_TYPE_INT,"0"},
+   {"gXcatAdr",&gXcatAdr,REG_VAR_TYPE_INT,"32"},
    {NULL}
 };
 

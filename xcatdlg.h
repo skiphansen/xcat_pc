@@ -1,4 +1,8 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.3  2004/08/28 22:31:31  Skip
+// Added the ability to change the serial port baudrate and the address used
+// by the Xcat on the bus.
+//
 // Revision 1.2  2004/08/08 23:41:28  Skip
 // Complete implementation of mode scan.
 //
@@ -269,23 +273,21 @@ public:
 
 // Dialog Data
    BYTE mComPort;
-   DCB mDcb;
 
    //{{AFX_DATA(CCommSetup)
-   enum { IDD = IDD_COMM_SETUP};
-      // NOTE - ClassWizard will add data members here.
-      //    DO NOT EDIT what you see in these blocks of generated code !
-   //}}AFX_DATA
+	enum { IDD = IDD_COMM_SETUP };
+	CString	mXCatAdr;
+	//}}AFX_DATA
 
 
 // Overrides
    // ClassWizard generate virtual function overrides
    //{{AFX_VIRTUAL(CCommSetup)
-   public:
+	public:
    virtual BOOL OnSetActive();
-   protected:
+	protected:
    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-   //}}AFX_VIRTUAL
+	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
@@ -300,6 +302,8 @@ protected:
    virtual BOOL OnInitDialog();
    //}}AFX_MSG
    DECLARE_MESSAGE_MAP()
+
+	void OnSet();
 
    void GrayCommButtons();
    static int ComPortResourceID[];

@@ -1,6 +1,10 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.3  2004/08/28 22:31:31  Skip
+// Added the ability to change the serial port baudrate and the address used
+// by the Xcat on the bus.
+//
 // Revision 1.2  2004/08/08 23:41:28  Skip
 // Complete implementation of mode scan.
 //
@@ -35,6 +39,7 @@ extern int gRxCTSS;
 extern int gTxCTSS;
 extern int gTxOffset;
 extern int gDebugMode;
+extern int gXcatAdr;
 extern CString gSaveFilename;
 extern CString gRestoreFilename;
 extern unsigned char gModeData[16];
@@ -97,6 +102,7 @@ enum XCAT_PRIVATE_IDS {
    ID_SAVE_CODEPLUG,
    ID_RESTORE_CODEPLUG,
    ID_COMM_ERROR,
+	ID_SET_XCAT_ADR
 };
 
 extern HWND hMainWindow;

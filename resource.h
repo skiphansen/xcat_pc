@@ -30,6 +30,7 @@
 #define IDC_DEBUG_MSGS                  1004
 #define IDC_TX_VCO_SPLIT_F              1004
 #define IDC_MODE                        1004
+#define IDC_XCAT_ADR                    1004
 #define IDC_EDIT2                       1005
 #define IDC_SCAN_MODE1                  1005
 #define IDC_TX_OFFSET_FREQ              1005

@@ -1,4 +1,8 @@
 // $Log: comm.h,v $
+// Revision 1.4  2004/08/28 22:31:30  Skip
+// Added the ability to change the serial port baudrate and the address used
+// by the Xcat on the bus.
+//
 // Revision 1.3  2004/08/08 23:49:16  Skip
 // Made mIOThreadEnable volatile to prevent a hang on exit when compiled
 // for *release*.  Bug originally found on Amsat Groundstation ... found again!
@@ -93,14 +97,14 @@ public:
 public:
    // Attributes
    BYTE mOurAdr;
+   DCB mDcb;            // device control block for our COM port
+   int mComPort;        // Our COM port number
 
 protected:
 
    //Communications stuff:
 
-   int mComPort;        // Our COM port number
    HANDLE mComDev;      // handle of our COM port
-   DCB mDcb;            // device control block for our COM port
 
    COMM_STATE mComState;
 
