@@ -1,4 +1,9 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.5  2005/01/08 19:31:30  Skip
+// 1. Replaced CCommSetup with new dialog that allows XCat's address and
+//    baudrate to be configured.
+// 2. Replaced recall mode dialog with new class that supports labeling modes.
+//
 // Revision 1.4  2004/12/27 05:55:24  Skip
 // Version 0.13:
 // 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
@@ -105,6 +110,8 @@ class ManualPage : public CPropertyPage
 public:
    ManualPage();
    ~ManualPage();
+
+	void ModeData();
 
 // Dialog Data
    //{{AFX_DATA(ManualPage)
@@ -269,6 +276,49 @@ protected:
 };
 
 /////////////////////////////////////////////////////////////////////////////
+// CCommSetup1 dialog
+
+class CCommSetup1 : public CPropertyPage
+{
+   DECLARE_DYNCREATE(CCommSetup1)
+
+// Construction
+public:
+	CCommSetup1();   // standard constructor
+
+// Dialog Data
+	//{{AFX_DATA(CCommSetup1)
+	enum { IDD = IDD_COMM_SETUP1 };
+	CString	mXCatAdr;
+	//}}AFX_DATA
+
+	int mNewXcatAdr;
+	int mNewBaudrate;
+	int mNewComPort;
+
+// Overrides
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CCommSetup1)
+	public:
+	virtual BOOL OnSetActive();
+	protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	//}}AFX_VIRTUAL
+
+// Implementation
+protected:
+	#define MAX_COM_PORTS	16
+	int mPortLookup[MAX_COM_PORTS];
+
+	// Generated message map functions
+	//{{AFX_MSG(CCommSetup1)
+	virtual BOOL OnInitDialog();
+	//}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
+	void OnSet();
+};
+
+/////////////////////////////////////////////////////////////////////////////
 // CCommSetup dialog
 
 class CCommSetup : public CPropertyPage
@@ -419,7 +469,7 @@ public:
    ManualPage ManualPage;
    CScanEnable ScanPage;
    CBandScan BandScan;
-   CCommSetup CCommSetup;
+   CCommSetup1 CommSetup;
    CDebugMsgs DebugMsgs;
    CConfigure Configure;
    CAbout CAbout;
@@ -464,27 +514,83 @@ class CModeSel : public CDialog
 {
 // Construction
 public:
-   CModeSel(CWnd* pParent = NULL);   // standard constructor
+	CModeSel(CWnd* pParent = NULL);   // standard constructor
 
 // Dialog Data
-   //{{AFX_DATA(CModeSel)
-   enum { IDD = IDD_MODE_SEL };
-   UINT  mMode;
-   //}}AFX_DATA
+	//{{AFX_DATA(CModeSel)
+	enum { IDD = IDD_MODE_SEL };
+	CComboBox	mMode;
+	//}}AFX_DATA
 
 
 // Overrides
-   // ClassWizard generated virtual function overrides
-   //{{AFX_VIRTUAL(CModeSel)
-   protected:
-   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-   //}}AFX_VIRTUAL
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CModeSel)
+	protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
 
-   // Generated message map functions
-   //{{AFX_MSG(CModeSel)
-   //}}AFX_MSG
-   DECLARE_MESSAGE_MAP()
+	// Generated message map functions
+	//{{AFX_MSG(CModeSel)
+	afx_msg void OnEditName();
+	virtual BOOL OnInitDialog();
+	virtual void OnOK();
+	//}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
+};
+/////////////////////////////////////////////////////////////////////////////
+// CEditModeName dialog
+
+class CEditModeName : public CDialog
+{
+// Construction
+public:
+	CEditModeName(CWnd* pParent = NULL);   // standard constructor
+
+// Dialog Data
+	//{{AFX_DATA(CEditModeName)
+	enum { IDD = IDD_NAME_EDIT };
+	CString	mName;
+	//}}AFX_DATA
+
+
+// Overrides
+	// ClassWizard generated virtual function overrides
+	//{{AFX_VIRTUAL(CEditModeName)
+	protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	//}}AFX_VIRTUAL
+
+// Implementation
+protected:
+
+	// Generated message map functions
+	//{{AFX_MSG(CEditModeName)
+	//}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
+};
+/////////////////////////////////////////////////////////////////////////////
+// CXcatFileDialog dialog
+
+class CXcatFileDialog : public CFileDialog
+{
+	DECLARE_DYNAMIC(CXcatFileDialog)
+
+public:
+	CXcatFileDialog(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE for FileSaveAs
+		LPCTSTR lpszDefExt = NULL,
+		LPCTSTR lpszFileName = NULL,
+		DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		LPCTSTR lpszFilter = NULL,
+		CWnd* pParentWnd = NULL);
+
+protected:
+	BOOL OnFileNameOK();
+	//{{AFX_MSG(CXcatFileDialog)
+		// NOTE - the ClassWizard will add and remove member functions here.
+	//}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
 };

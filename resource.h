@@ -18,6 +18,8 @@
 #define IDD_CONFIGURE                   134
 #define IDD_DEBUG                       136
 #define IDD_MODE_SEL                    138
+#define IDD_NAME_EDIT                   144
+#define IDD_COMM_SETUP1                 145
 #define IDC_COM1                        253
 #define IDC_COM2                        254
 #define IDC_COM3                        255
@@ -31,6 +33,7 @@
 #define IDC_TX_VCO_SPLIT_F              1004
 #define IDC_MODE                        1004
 #define IDC_XCAT_ADR                    1004
+#define IDC_NAME                        1004
 #define IDC_EDIT2                       1005
 #define IDC_SCAN_MODE1                  1005
 #define IDC_TX_OFFSET_FREQ              1005
@@ -51,6 +54,7 @@
 #define IDC_SCAN_MODE31                 1012
 #define IDC_COMBO1                      1013
 #define IDC_PRIORITY_CHAN               1013
+#define IDC_COM_PORT                    1013
 #define IDC_SCAN_FREQ                   1014
 #define IDC_CONTROL_SYS                 1014
 #define IDC_BAND_SCAN_TOP               1015
@@ -74,6 +78,7 @@
 #define IDC_SCAN_MODE10                 1034
 #define IDC_TB_ENABLED                  1036
 #define IDC_SCAN_ENABLED                1037
+#define IDC_EDIT_NAME                   1038
 #define IDC_SCAN_MODE4                  1045
 #define IDC_SCAN_MODE5                  1046
 #define IDC_SCAN_MODE6                  1047
@@ -115,15 +120,16 @@
 #define IDC_SCAN_MODE26                 1068
 #define IDC_COMBO2                      1069
 #define IDC_2ND_PRIORITY                1069
+#define IDC_BAUDRATE                    1069
 #define IDC_SCAN_MODE12                 1070
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1038
+#define _APS_NEXT_CONTROL_VALUE         1041
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif
