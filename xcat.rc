@@ -91,7 +91,7 @@ BEGIN
     LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,40,119,8,
                     SS_NOPREFIX
     LTEXT           "Compiled: ",IDC_COMPILED,61,30,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.09",IDC_STATIC,61,20,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.10",IDC_STATIC,61,20,119,8,SS_NOPREFIX
     LTEXT           "WB6YMH",IDC_STATIC,61,60,119,8
 END
 
@@ -99,7 +99,7 @@ IDD_VFO DIALOGEX 0, 0, 187, 138
 STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "VFO"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     EDITTEXT        IDC_RX_FREQ,91,15,58,14,ES_AUTOHSCROLL
     COMBOBOX        IDC_RX_PL,91,35,69,70,CBS_DROPDOWNLIST | CBS_SORT | 
@@ -118,82 +118,88 @@ BEGIN
     LTEXT           "Mhz",IDC_STATIC,151,95,14,14,SS_CENTERIMAGE
 END
 
-IDD_SCAN_ENABLE DIALOG DISCARDABLE  0, 0, 187, 138
+IDD_SCAN_ENABLE DIALOG DISCARDABLE  0, 0, 202, 151
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Scan"
+CAPTION "Mode Scan"
 FONT 8, "MS Sans Serif"
 BEGIN
+    CONTROL         "Scan Enabled",IDC_SCAN_ENABLED,"Button",BS_AUTOCHECKBOX | 
+                    BS_LEFTTEXT | WS_TABSTOP,15,5,61,10
+    CONTROL         "Talk Back Enable",IDC_TB_ENABLED,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,3,16,73,10
+    COMBOBOX        IDC_PRIORITY_CHAN,140,5,48,91,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_2ND_PRIORITY,140,24,48,68,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
     CONTROL         "VFO",IDC_SCAN_MODE1,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,15,50,30,10
+                    WS_TABSTOP,15,55,30,10
     CONTROL         "2",IDC_SCAN_MODE2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,59,20,10
+                    15,64,20,10
     CONTROL         "3",IDC_SCAN_MODE3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,68,20,10
+                    15,73,20,10
     CONTROL         "4",IDC_SCAN_MODE4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,77,20,10
+                    15,82,20,10
     CONTROL         "5",IDC_SCAN_MODE5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,86,20,10
+                    15,91,20,10
     CONTROL         "6",IDC_SCAN_MODE6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,95,20,10
+                    15,100,20,10
     CONTROL         "7",IDC_SCAN_MODE7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,104,20,10
+                    15,109,20,10
     CONTROL         "8",IDC_SCAN_MODE8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    15,113,20,10
-    CONTROL         "9",IDC_,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,50,20,
-                    10
-    CONTROL         "10",IDC_CHECK5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,
-                    59,24,10
-    CONTROL         "11",IDC_CHECK6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,
-                    68,24,10
-    CONTROL         "12",IDC_SCAN_MODE9,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,47,77,24,10
-    CONTROL         "13",IDC_SCAN_MODE10,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,47,86,24,10
-    CONTROL         "14",IDC_SCAN_MODE11,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,47,95,24,10
-    CONTROL         "15",IDC_CHECK12,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    47,104,24,10
-    CONTROL         "16",IDC_CHECK13,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    47,113,24,10
-    CONTROL         "17",IDC_CHECK16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,50,24,10
-    CONTROL         "18",IDC_CHECK17,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,59,24,10
-    CONTROL         "19",IDC_CHECK18,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,68,24,10
-    CONTROL         "20",IDC_CHECK19,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,77,24,10
-    CONTROL         "21",IDC_CHECK20,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,86,24,10
-    CONTROL         "22",IDC_CHECK21,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,95,24,10
-    CONTROL         "23",IDC_CHECK14,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,104,24,10
-    CONTROL         "24",IDC_CHECK22,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    79,113,24,10
-    CONTROL         "25",IDC_CHECK15,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,50,24,10
-    CONTROL         "26",IDC_CHECK23,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,59,24,10
-    CONTROL         "27",IDC_SCAN_MODE12,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,111,68,24,10
-    CONTROL         "28",IDC_CHECK11,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,77,24,10
-    CONTROL         "29",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,86,24,10
-    CONTROL         "30",IDC_CHECK9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,95,24,10
-    CONTROL         "31",IDC_CHECK8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    111,104,24,10
+                    15,118,20,10
+    CONTROL         "9",IDC_SCAN_MODE9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    67,55,20,10
+    CONTROL         "10",IDC_SCAN_MODE10,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,64,24,10
+    CONTROL         "11",IDC_SCAN_MODE11,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,73,24,10
+    CONTROL         "12",IDC_SCAN_MODE12,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,82,24,10
+    CONTROL         "13",IDC_SCAN_MODE13,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,91,24,10
+    CONTROL         "14",IDC_SCAN_MODE14,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,100,24,10
+    CONTROL         "15",IDC_SCAN_MODE15,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,109,24,10
+    CONTROL         "16",IDC_SCAN_MODE16,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,67,118,24,10
+    CONTROL         "17",IDC_SCAN_MODE17,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,55,24,10
+    CONTROL         "18",IDC_SCAN_MODE18,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,64,24,10
+    CONTROL         "19",IDC_SCAN_MODE19,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,73,24,10
+    CONTROL         "20",IDC_SCAN_MODE20,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,82,24,10
+    CONTROL         "21",IDC_SCAN_MODE21,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,91,24,10
+    CONTROL         "22",IDC_SCAN_MODE22,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,100,24,10
+    CONTROL         "23",IDC_SCAN_MODE23,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,109,24,10
+    CONTROL         "24",IDC_SCAN_MODE24,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,118,24,10
+    CONTROL         "25",IDC_SCAN_MODE25,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,55,24,10
+    CONTROL         "26",IDC_SCAN_MODE26,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,64,24,10
+    CONTROL         "27",IDC_SCAN_MODE27,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,73,24,10
+    CONTROL         "28",IDC_SCAN_MODE28,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,82,24,10
+    CONTROL         "29",IDC_SCAN_MODE29,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,91,24,10
+    CONTROL         "30",IDC_SCAN_MODE30,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,100,24,10
+    CONTROL         "31",IDC_SCAN_MODE31,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,109,24,10
     CONTROL         "32",IDC_SCAN_MODE32,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,111,114,24,10
-    LTEXT           "Priority Channel",IDC_STATIC,7,7,50,14,SS_CENTERIMAGE
-    LTEXT           "2nd Priority",IDC_STATIC,21,24,36,12,SS_CENTERIMAGE
-    COMBOBOX        IDC_COMBO1,63,7,48,91,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO2,63,24,48,68,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Non priority channels",IDC_STATIC,5,41,135,90
+                    WS_TABSTOP,155,119,24,10
+    LTEXT           "Priority Channel",IDC_STATIC,85,5,50,14,SS_CENTERIMAGE
+    LTEXT           "2nd Priority",IDC_STATIC,99,24,36,12,SS_CENTERIMAGE
+    GROUPBOX        "Non Priority Modes",IDC_STATIC,5,45,185,90
+    CONTROL         "Fixed Scan",IDC_FIXED_SCAN,"Button",BS_AUTOCHECKBOX | 
+                    BS_LEFTTEXT | WS_TABSTOP,25,27,51,10
 END
 
 IDD_BAND_SCAN DIALOG DISCARDABLE  0, 0, 187, 138
@@ -226,7 +232,7 @@ END
 IDD_COMM_SETUP DIALOGEX 0, 0, 187, 138
 STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Serial Port"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     GROUPBOX        "&Serial Port",-1,45,42,96,53
     CONTROL         "COM&1",IDC_COM1,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
@@ -318,8 +324,9 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
+            VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "xcat MFC Application\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
@@ -327,8 +334,10 @@ BEGIN
             VALUE "LegalCopyright", "Copyright (C) 2003\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "xcat.EXE\0"
+            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "xcat Application\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
@@ -367,9 +376,9 @@ BEGIN
     IDD_SCAN_ENABLE, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 180
+        RIGHTMARGIN, 195
         TOPMARGIN, 7
-        BOTTOMMARGIN, 131
+        BOTTOMMARGIN, 144
     END
 
     IDD_BAND_SCAN, DIALOG
@@ -450,8 +459,14 @@ BEGIN
     IDC_CONTROL_SYS, 0x403, 22, 0
 0x6547, 0x656e, 0x6972, 0x2063, 0x202f, 0x4422, 0x756f, 0x2067, 0x6148, 
 0x6c6c, 0x0022, 
-    IDC_CONTROL_SYS, 0x403, 17, 0
-0x6150, 0x6f6c, 0x616d, 0x2072, 0x202f, 0x6143, 0x7463, 0x7375, "\000" 
+    IDC_CONTROL_SYS, 0x403, 12, 0
+0x6150, 0x6f6c, 0x616d, 0x2072, 0x4252, 0x0031, 
+    IDC_CONTROL_SYS, 0x403, 12, 0
+0x6150, 0x6f6c, 0x616d, 0x2072, 0x4252, 0x0032, 
+    IDC_CONTROL_SYS, 0x403, 12, 0
+0x6150, 0x6f6c, 0x616d, 0x2072, 0x4252, 0x0033, 
+    IDC_CONTROL_SYS, 0x403, 12, 0
+0x6150, 0x6f6c, 0x616d, 0x2072, 0x4252, 0x0034, 
     IDC_OUT_0, 0x403, 10, 0
 0x4f43, 0x2053, 0x6e49, 0x7570, 0x0074, 
     IDC_OUT_0, 0x403, 12, 0

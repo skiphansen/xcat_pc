@@ -1,6 +1,10 @@
 // $Log: xcatdlg.h,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:28  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 //
 #if !defined(AFX_XCATDIALOG_H__712BDAC8_AF96_4012_A7AA_75BC2D3AC619__INCLUDED_)
@@ -137,29 +141,43 @@ class CScanEnable : public CPropertyPage
 public:
    CScanEnable();
    ~CScanEnable();
+	void ModeData();
 
 // Dialog Data
    //{{AFX_DATA(CScanEnable)
-   enum { IDD = IDD_SCAN_ENABLE };
-      // NOTE - ClassWizard will add data members here.
-      //    DO NOT EDIT what you see in these blocks of generated code !
-   //}}AFX_DATA
+	enum { IDD = IDD_SCAN_ENABLE };
+	CComboBox	m2ndPriorityMode;
+	CComboBox	mPriorityMode;
+	BOOL	m_bScanEnabled;
+	BOOL	m_bTalkbackEnabled;
+	BOOL	m_bFixedScan;
+	//}}AFX_DATA
 
 
 // Overrides
    // ClassWizard generate virtual function overrides
    //{{AFX_VIRTUAL(CScanEnable)
-   protected:
+	public:
+	virtual BOOL OnSetActive();
+	protected:
    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-   //}}AFX_VIRTUAL
+	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
    // Generated message map functions
    //{{AFX_MSG(CScanEnable)
-      // NOTE: the ClassWizard will add member functions here
-   //}}AFX_MSG
+	virtual BOOL OnInitDialog();
+	afx_msg void OnScanEnabled();
+	afx_msg void OnFixedScan();
+	afx_msg void OnSelchangePriorityChan();
+	//}}AFX_MSG
    DECLARE_MESSAGE_MAP()
+
+	void EnableDisableControls();
+	void OnRecallMode();
+	void OnSaveMode();
+	void OnManualSet();
 
 };
 /////////////////////////////////////////////////////////////////////////////
@@ -338,6 +356,7 @@ public:
    CDebugMsgs();
    ~CDebugMsgs();
    void ModeData(unsigned char *Data);
+   void SignalReport(int Mode,int bSignal);
 
 // Dialog Data
    //{{AFX_DATA(CDebugMsgs)

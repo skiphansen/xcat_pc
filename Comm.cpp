@@ -1,6 +1,10 @@
 // $Log: Comm.cpp,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:27  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 //
 #include "stdafx.h"
@@ -10,6 +14,7 @@
 
 Comm CComm;
 #define MAX_RETRIES  5
+#define XCAT_ADR     0x20
 int tracecounter = 0;
 
 // Set time in pTimeout TimeoutMs milliseconds from now
@@ -675,12 +680,12 @@ void Comm::SetFreq(double Freq)
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
 #if 0
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 0;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
 #else
-      InitMsgHeader(&pMsg->Hdr,0x20,5);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,5);
 
       int iFreq = (int) ((Freq * 1000000.0) + 0.5);
 
@@ -714,7 +719,7 @@ void Comm::SetCTSSFreq(double Freq,BYTE Decode)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0x1b);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0x1b);
 
       int iFreq = (int) ((Freq * 10.0) + 0.5);
 
@@ -739,7 +744,7 @@ void Comm::RequestFWVer()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 2;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -753,7 +758,7 @@ void Comm::GetModeData()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 0;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -767,7 +772,7 @@ void Comm::GetTxOffset()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 5;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -781,7 +786,7 @@ void Comm::SetTxOffset(int TxOffset)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 6;
       for(int i = 1; i < 5; i++) {
          pMsg->Data[i] = (BYTE) (TxOffset & 0xff);
@@ -799,7 +804,7 @@ void Comm::GetVCOSplits()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 7;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -813,7 +818,7 @@ void Comm::SetVCOSplits(unsigned int RxSplitF,unsigned int TxSplitF)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 8;
       for(int i = 1; i < 5; i++) {
          pMsg->Data[i] = (BYTE) (RxSplitF & 0xff);
@@ -835,7 +840,7 @@ void Comm::GetConfig()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 3;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -849,7 +854,7 @@ void Comm::SetConfig(unsigned char *Config)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       pMsg->Data[0] = 4;
       pMsg->Data[1] = Config[0];
       pMsg->Data[2] = Config[1];
@@ -865,7 +870,7 @@ void Comm::SetDuplex(unsigned char DuplexType)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xf);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xf);
       pMsg->Data[0] = DuplexType;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -879,7 +884,7 @@ void Comm::StoreVFO()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,9);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,9);
       pMsg->Data[0] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 1;
       SendMessage(pMsg);
@@ -892,7 +897,7 @@ void Comm::RecallMode()
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xa);
       pMsg->Data[0] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 1;
       SendMessage(pMsg);
@@ -908,7 +913,7 @@ void Comm::SelectMode(unsigned char Mode)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,8);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,8);
       pMsg->Data[0] = (unsigned char) Bcd;
       pMsg->Data[1] = 0xfd;
       pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
@@ -923,7 +928,7 @@ void Comm::SetModeData(unsigned char *Data)
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
-      InitMsgHeader(&pMsg->Hdr,0x20,0xaa);
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
       int i = 0;
       pMsg->Data[i++] = 1;
       for(int j = 0; j < 16; j++) {
@@ -934,5 +939,21 @@ void Comm::SetModeData(unsigned char *Data)
       SendMessage(pMsg);
    }
 }
+
+void Comm::GetSigReport()
+{
+   AppMsg *pMsg = new AppMsg;
+
+   if(pMsg != NULL) {
+      memset(pMsg,0,sizeof(AppMsg));
+      InitMsgHeader(&pMsg->Hdr,XCAT_ADR,0xaa);
+      pMsg->Data[0] = 9;
+      pMsg->Data[1] = 0xfd;
+      pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
+      SendMessage(pMsg);
+   }
+}
+
+
 
 

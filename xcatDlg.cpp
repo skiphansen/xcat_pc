@@ -1,8 +1,12 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:28  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 
 #include "stdafx.h"
@@ -20,6 +24,14 @@
 #define CONFIG_CTRL_MASK 0x3
 #define CONFIG_GENERIC  0x1
 #define CONFIG_CACTUS   0x2
+
+#define SYNTOR_SCAN_TYPE_MASK    0xc0
+#define SYNTOR_SCAN_TYPE_DOUBLE  0x00
+#define SYNTOR_SCAN_TYPE_SINGLE  0x40
+#define SYNTOR_SCAN_TYPE_NONE    0x80
+#define SYNTOR_SCAN_TYPE_NONPRI  0xc0
+
+#define SYNTOR_32MODE_MASK       0x1f
 
 
 #ifdef _DEBUG
@@ -97,9 +109,7 @@ CXcatDlg::CXcatDlg(LPCTSTR pszCaption, CWnd* pParentWnd, UINT iSelectPage)
    bHaveSignal = FALSE;
    SignalLostTime = 0;
    AddPage(&ManualPage);
-#if 0
    AddPage(&ScanPage);
-#endif
    AddPage(&BandScan);
    AddPage(&CCommSetup);
    AddPage(&Configure);
@@ -172,6 +182,8 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
    // Private Xcat command
       switch(pMsg->Data[0]) {
          case 0x80:  // response to get vfo raw data
+            memcpy(gModeData,&pMsg->Data[1],sizeof(gModeData));
+            ScanPage.ModeData();
             if(GetActivePage() == &DebugMsgs) {
                DebugMsgs.ModeData(&pMsg->Data[1]);
             }
@@ -235,6 +247,11 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
          case 0x87:  // get VCO splits
          {
             Configure.VCOSplits(&pMsg->Data[1]);
+            break;
+         }
+
+         case 0x89:  // Debug info
+         {
             break;
          }
       }
@@ -446,7 +463,9 @@ IMPLEMENT_DYNCREATE(CScanEnable, CPropertyPage)
 CScanEnable::CScanEnable() : CPropertyPage(CScanEnable::IDD)
 {
    //{{AFX_DATA_INIT(CScanEnable)
-      // NOTE: the ClassWizard will add member initialization here
+   m_bScanEnabled = FALSE;
+   m_bTalkbackEnabled = FALSE;
+   m_bFixedScan = FALSE;
    //}}AFX_DATA_INIT
 }
 
@@ -458,19 +477,278 @@ void CScanEnable::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(CScanEnable)
-      // NOTE: the ClassWizard will add DDX and DDV calls here
+   DDX_Control(pDX, IDC_2ND_PRIORITY, m2ndPriorityMode);
+   DDX_Control(pDX, IDC_PRIORITY_CHAN, mPriorityMode);
+   DDX_Check(pDX, IDC_SCAN_ENABLED, m_bScanEnabled);
+   DDX_Check(pDX, IDC_TB_ENABLED, m_bTalkbackEnabled);
+   DDX_Check(pDX, IDC_FIXED_SCAN, m_bFixedScan);
    //}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(CScanEnable, CPropertyPage)
    //{{AFX_MSG_MAP(CScanEnable)
-      // NOTE: the ClassWizard will add message map macros here
+   ON_BN_CLICKED(IDC_SCAN_ENABLED, OnScanEnabled)
+   ON_BN_CLICKED(IDC_FIXED_SCAN, OnFixedScan)
+   ON_CBN_SELCHANGE(IDC_PRIORITY_CHAN, OnSelchangePriorityChan)
    //}}AFX_MSG_MAP
+   ON_BN_CLICKED(ID_MANUAL_SET,OnManualSet)
+   ON_BN_CLICKED(ID_SAVE_MODE,OnSaveMode)
+   ON_BN_CLICKED(ID_RECALL_MODE,OnRecallMode)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CScanEnable message handlers
+
+int NPResoursesIDs[] = {
+   IDC_SCAN_MODE1,
+   IDC_SCAN_MODE2,
+   IDC_SCAN_MODE3,
+   IDC_SCAN_MODE4,
+   IDC_SCAN_MODE5,
+   IDC_SCAN_MODE6,
+   IDC_SCAN_MODE7,
+   IDC_SCAN_MODE8,
+   IDC_SCAN_MODE9,
+   IDC_SCAN_MODE10,
+   IDC_SCAN_MODE11,
+   IDC_SCAN_MODE12,
+   IDC_SCAN_MODE13,
+   IDC_SCAN_MODE14,
+   IDC_SCAN_MODE15,
+   IDC_SCAN_MODE16,
+   IDC_SCAN_MODE17,
+   IDC_SCAN_MODE18,
+   IDC_SCAN_MODE19,
+   IDC_SCAN_MODE20,
+   IDC_SCAN_MODE21,
+   IDC_SCAN_MODE22,
+   IDC_SCAN_MODE23,
+   IDC_SCAN_MODE24,
+   IDC_SCAN_MODE25,
+   IDC_SCAN_MODE26,
+   IDC_SCAN_MODE27,
+   IDC_SCAN_MODE28,
+   IDC_SCAN_MODE29,
+   IDC_SCAN_MODE30,
+   IDC_SCAN_MODE31,
+   IDC_SCAN_MODE32,
+   0
+};
+
+int ScanResoursesIDs[] = {
+   IDC_PRIORITY_CHAN,
+   IDC_TB_ENABLED,
+   IDC_FIXED_SCAN,
+   0
+};
+
+int SecondPriorityResoursesID[] = {
+	IDC_2ND_PRIORITY,
+	0
+};
+
+BOOL CScanEnable::OnInitDialog() 
+{
+   CPropertyPage::OnInitDialog();
+   
+   mPriorityMode.InsertString(-1,"None");
+   m2ndPriorityMode.InsertString(-1,"None");
+   for(int i = 0; i < 32; i++) {
+      CString ModeString;
+      ModeString.Format("Mode %d",i+1);
+      mPriorityMode.InsertString(-1,ModeString);
+      m2ndPriorityMode.InsertString(-1,ModeString);
+   }
+
+   return TRUE;  // return TRUE unless you set the focus to a control
+                 // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+BOOL CScanEnable::OnSetActive() 
+{
+   SetButtonMode(IDOK,ID_MANUAL_SET,"Set",TRUE,FALSE);
+   SetButtonMode(IDCANCEL,ID_SAVE_MODE,"Store",TRUE,FALSE);
+   SetButtonMode(ID_APPLY_NOW,ID_RECALL_MODE,"Recall",TRUE,FALSE);
+   SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
+   
+   CComm.GetModeData();
+
+   return CPropertyPage::OnSetActive();
+}
+
+
+void CScanEnable::ModeData()
+{
+   CButton *pRB;
+
+   switch(gModeData[9] & SYNTOR_SCAN_TYPE_MASK) {
+      case SYNTOR_SCAN_TYPE_DOUBLE:
+         m_bScanEnabled = TRUE;
+         mPriorityMode.SetCurSel((gModeData[0xa] & SYNTOR_32MODE_MASK) + 1);
+         m2ndPriorityMode.SetCurSel((gModeData[9] & SYNTOR_32MODE_MASK) + 1);
+         break;
+
+      case SYNTOR_SCAN_TYPE_SINGLE:
+         m_bScanEnabled = TRUE;
+         mPriorityMode.SetCurSel((gModeData[0xa] & SYNTOR_32MODE_MASK) + 1);
+         m2ndPriorityMode.SetCurSel(0);
+         break;
+
+      case SYNTOR_SCAN_TYPE_NONE:
+         m_bScanEnabled = FALSE;
+         mPriorityMode.SetCurSel(0);
+         m2ndPriorityMode.SetCurSel(0);
+         break;
+
+      case SYNTOR_SCAN_TYPE_NONPRI:
+         m_bScanEnabled = TRUE;
+         mPriorityMode.SetCurSel(0);
+         m2ndPriorityMode.SetCurSel(0);
+         break;
+   }
+
+   if(gModeData[9] & 0x20) {
+      m_bTalkbackEnabled = FALSE;
+   }
+   else {
+   // Talk back scan enabled
+      m_bTalkbackEnabled = TRUE;
+   }
+
+   if(gModeData[0xa] & 0x80) {
+      m_bFixedScan = TRUE;
+   }
+   else {
+      m_bFixedScan = FALSE;
+   }
+
+   int NPBits = (gModeData[0] << 24) | (gModeData[1] << 16) | (gModeData[2] << 8) | gModeData[3];
+   unsigned int Mask = 0x80000000;
+
+   for(int i = 0; i < 32; i++) {
+      pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
+      pRB->SetCheck(NPBits & Mask ? FALSE : TRUE);
+      Mask >>= 1;
+   }
+   UpdateData(FALSE);
+   EnableDisableControls();
+}
+
+void CScanEnable::OnManualSet()
+{
+   UpdateData(TRUE);
+
+   int NPBits = 0xffffffff;
+   unsigned int Mask = 0x80000000;
+
+   CButton *pRB;
+
+   for(int i = 0; i < 32; i++) {
+      pRB = (CButton *) GetDlgItem(NPResoursesIDs[i]);
+      if(pRB->GetCheck()) {
+         NPBits &= ~Mask;
+      }
+      Mask >>= 1;
+   }
+
+   gModeData[0] = (unsigned char) ((NPBits >> 24) & 0xff);
+   gModeData[1] = (unsigned char) ((NPBits >> 16) & 0xff);
+   gModeData[2] = (unsigned char) ((NPBits >> 8) & 0xff);
+   gModeData[3] = (unsigned char) (NPBits & 0xff);
+
+   if(m_bTalkbackEnabled) {
+      gModeData[9] &= ~0x20;
+   }
+   else {
+      gModeData[9] |= 0x20;
+   }
+
+   if(m_bFixedScan) {
+      gModeData[0xa] |= 0x80;
+   }
+   else {
+      gModeData[0xa] &= ~0x80;
+   }
+
+   int PrioritySel = mPriorityMode.GetCurSel();
+   int SecondPrioritySel = m2ndPriorityMode.GetCurSel();
+
+   gModeData[9] &= ~SYNTOR_SCAN_TYPE_MASK;
+   gModeData[9] &=  ~SYNTOR_32MODE_MASK;
+   gModeData[0xa] &=  ~SYNTOR_32MODE_MASK;
+
+   if(m_bScanEnabled) {
+      if(PrioritySel == 0) {
+      // No priority channel selected
+         gModeData[9] |= SYNTOR_SCAN_TYPE_NONPRI;
+      }
+      else if(SecondPrioritySel == 0) {
+      // No 2nd priority channel selected
+         gModeData[9] |= SYNTOR_SCAN_TYPE_SINGLE;
+         gModeData[0xa] |= (PrioritySel - 1);
+      }
+      else {
+      // Both priority channels selected
+         gModeData[9] |= SYNTOR_SCAN_TYPE_DOUBLE;
+         gModeData[9] |= (SecondPrioritySel - 1);
+         gModeData[0xa] |= (PrioritySel - 1);
+      }
+   }
+   else {
+      gModeData[9] |= SYNTOR_SCAN_TYPE_NONE;
+   }
+   CComm.SetModeData(&gModeData[0]);
+
+}
+
+void CScanEnable::EnableDisableControls() 
+{
+   UpdateData(TRUE);
+   
+   EnableItems(this,NPResoursesIDs,m_bScanEnabled && m_bFixedScan);
+   EnableItems(this,ScanResoursesIDs,m_bScanEnabled);
+   EnableItems(this,SecondPriorityResoursesID,
+					m_bScanEnabled && mPriorityMode.GetCurSel() != 0);
+}
+
+void CScanEnable::OnScanEnabled() 
+{
+   EnableDisableControls();
+}
+
+void CScanEnable::OnFixedScan() 
+{
+   EnableDisableControls();
+}
+
+void CScanEnable::OnSelchangePriorityChan() 
+{
+   EnableDisableControls();
+}
+
+void CScanEnable::OnSaveMode()
+{
+   CModeSel dlg;
+
+   OnManualSet();
+   if(dlg.DoModal() == IDOK) {
+      CComm.SelectMode(dlg.mMode);
+      CComm.StoreVFO();
+   }
+}
+
+void CScanEnable::OnRecallMode()
+{
+   CModeSel dlg;
+
+   if(dlg.DoModal() == IDOK) {
+      CComm.SelectMode(dlg.mMode);
+      CComm.RecallMode();
+      CComm.GetModeData();
+   }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CBandScan property page
 
@@ -1072,6 +1350,10 @@ END_MESSAGE_MAP()
 BOOL CDebugMsgs::OnSetActive() 
 {
    CComm.GetModeData();
+#if 0
+   CComm.GetSigReport();
+#endif
+
    mEdit.SetWindowText("");
    return CPropertyPage::OnSetActive();
 }
@@ -1095,6 +1377,20 @@ void CDebugMsgs::ModeData(unsigned char *Data)
    mEdit.SetWindowText(Text);
 
 }
+
+void CDebugMsgs::SignalReport(int Mode,int bSignal)
+{
+   CString Text;
+   CString Report;
+
+   Report.Format("\r\nMode %d, Carrier %d\r\n",Mode,bSignal);
+
+   mEdit.GetWindowText(Text);
+
+   Text += Report;
+   mEdit.SetWindowText(Text);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CConfigure property page
 
@@ -1177,7 +1473,31 @@ void CConfigure::OnSetConfig()
    int Config[2];
 
    Config[0] = mBand.GetCurSel();
-   Config[0] |= mControlSys.GetCurSel() << 4;
+
+   switch(mControlSys.GetCurSel()) {
+      case 0:  // No control system
+         break;
+
+      case 1:  // Doug Hall
+         Config[0] |= 0x10;
+         break;
+
+      case 2:  // Palomar Telecom / Cactus / Remote base #1
+         Config[0] |= 0x20;
+         break;
+
+      case 3:  // Palomar Telecom / Cactus / Remote base #2
+         Config[0] |= 0x60;
+         break;
+
+      case 4:  // Palomar Telecom / Cactus / Remote base #3
+         Config[0] |= 0xa0;
+         break;
+
+      case 5:  // Palomar Telecom / Cactus / Remote base #4
+         Config[0] |= 0xd0;
+         break;
+   }
    
    if(mSendCosMsg) {
       Config[0] |= 8;
@@ -1224,11 +1544,28 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
    mBand.SetCurSel(BandSelection);
    mSendCosMsg = (Config[0] & 0x8) ? TRUE : FALSE;
    
-   int ControlSystemSel = (Config[0] >> 4) & CONFIG_CTRL_MASK;
+   int ControlSystemSel = 0;
 
-   if(ControlSystemSel > 2) {
-   // Assume None
-      ControlSystemSel = 0;
+   switch(Config[0] >> 4) {
+      case 1:  // Doug Hall
+         ControlSystemSel = 1;
+         break;
+
+      case 2:  // Palomar Telecom / Cactus / Remote base #1
+         ControlSystemSel = 2;
+         break;
+
+      case 6:  // Palomar Telecom / Cactus / Remote base #2
+         ControlSystemSel = 3;
+         break;
+
+      case 0xa:   // Palomar Telecom / Cactus / Remote base #3
+         ControlSystemSel = 4;
+         break;
+
+      case 0xd:   // Palomar Telecom / Cactus / Remote base #4
+         ControlSystemSel = 5;
+         break;
    }
    mControlSys.SetCurSel(ControlSystemSel);
 
@@ -1488,3 +1825,8 @@ BOOL CAbout::OnInitDialog()
    return TRUE;  // return TRUE unless you set the focus to a control
                  // EXCEPTION: OCX Property Pages should return FALSE
 }
+
+
+
+
+

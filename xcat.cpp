@@ -1,8 +1,12 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:28  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 
 #include "stdafx.h"
@@ -72,6 +76,7 @@ int gTxOffset;
 int gDebugMode;
 CString gSaveFilename;
 CString gRestoreFilename;
+unsigned char gModeData[16];
 
 RegVariable RegVars[] = {
    {"ComPort",&gComPort,REG_VAR_TYPE_INT,"1"},

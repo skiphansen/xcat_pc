@@ -1,6 +1,10 @@
 // $Log: comm.h,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:28  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 //
 #define ICOM_MIN_MSG_SIZE  6
@@ -80,6 +84,7 @@ public:
    void StoreVFO();
    void SelectMode(unsigned char Mode);
    void SetModeData(unsigned char *Data);
+   void GetSigReport();
 
 public:
    // Attributes

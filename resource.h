@@ -40,13 +40,16 @@
 #define IDC_SCAN_MODE3                  1007
 #define IDC_HANG_TIME                   1007
 #define IDC_CHECK4                      1008
-#define IDC_                            1008
+#define IDC_FIXED_SCAN                  1008
 #define IDC_CHECK5                      1009
 #define IDC_CHECK6                      1010
+#define IDC_SCAN_MODE11                 1010
 #define IDC_CHECK7                      1011
 #define IDC_SCAN_MODE32                 1011
 #define IDC_CHECK8                      1012
+#define IDC_SCAN_MODE31                 1012
 #define IDC_COMBO1                      1013
+#define IDC_PRIORITY_CHAN               1013
 #define IDC_SCAN_FREQ                   1014
 #define IDC_CONTROL_SYS                 1014
 #define IDC_BAND_SCAN_TOP               1015
@@ -67,31 +70,51 @@
 #define IDC_DEFAULTS                    1031
 #define IDC_COMPILED                    1032
 #define IDC_TRANSFER_STATUS             1033
+#define IDC_SCAN_MODE10                 1034
+#define IDC_TB_ENABLED                  1036
+#define IDC_SCAN_ENABLED                1037
 #define IDC_SCAN_MODE4                  1045
 #define IDC_SCAN_MODE5                  1046
 #define IDC_SCAN_MODE6                  1047
 #define IDC_CHECK9                      1048
+#define IDC_SCAN_MODE30                 1048
 #define IDC_CHECK10                     1049
+#define IDC_SCAN_MODE29                 1049
 #define IDC_CHECK11                     1050
+#define IDC_SCAN_MODE28                 1050
 #define IDC_CHECK12                     1051
+#define IDC_SCAN_MODE15                 1051
 #define IDC_CHECK13                     1052
+#define IDC_SCAN_MODE16                 1052
 #define IDC_SCAN_MODE7                  1053
 #define IDC_SCAN_MODE8                  1054
 #define IDC_SCAN_MODE9                  1055
 #define IDC_CHECK14                     1056
+#define IDC_SCAN_MODE23                 1056
 #define IDC_CHECK15                     1057
+#define IDC_SCAN_MODE25                 1057
 #define IDC_CHECK16                     1058
+#define IDC_SCAN_MODE17                 1058
 #define IDC_CHECK17                     1059
+#define IDC_SCAN_MODE18                 1059
 #define IDC_CHECK18                     1060
-#define IDC_SCAN_MODE10                 1061
-#define IDC_SCAN_MODE11                 1062
-#define IDC_SCAN_MODE12                 1063
+#define IDC_SCAN_MODE19                 1060
+#define IDC_SCAN_MODE13                 1061
+#define IDC_SCAN_MODE14                 1062
+#define IDC_SCAN_MODE27                 1063
 #define IDC_CHECK19                     1064
+#define IDC_SCAN_MODE20                 1064
 #define IDC_CHECK20                     1065
+#define IDC_SCAN_MODE21                 1065
 #define IDC_CHECK21                     1066
+#define IDC_SCAN_MODE22                 1066
 #define IDC_CHECK22                     1067
+#define IDC_SCAN_MODE24                 1067
 #define IDC_CHECK23                     1068
+#define IDC_SCAN_MODE26                 1068
 #define IDC_COMBO2                      1069
+#define IDC_2ND_PRIORITY                1069
+#define IDC_SCAN_MODE12                 1070
 
 // Next default values for new objects
 // 
@@ -99,7 +122,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        141
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1034
+#define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

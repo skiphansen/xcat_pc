@@ -1,8 +1,12 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2004/08/08 23:41:28  Skip
+// Complete implementation of mode scan.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 
 #if !defined(AFX_XCAT_H__B8E5B984_12DA_4FF5_B2D5_A938DB6FBA76__INCLUDED_)
@@ -33,6 +37,7 @@ extern int gTxOffset;
 extern int gDebugMode;
 extern CString gSaveFilename;
 extern CString gRestoreFilename;
+extern unsigned char gModeData[16];
 
 typedef struct {
    const char *Name;
