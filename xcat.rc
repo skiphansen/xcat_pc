@@ -1,0 +1,525 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+// Generated Help ID header file
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "resource.hm"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\xcat.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\icon1.ico"
+IDR_BATWING             ICON    DISCARDABLE     "res\\xcat.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 200, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "Xcat PC Control Program",IDC_STATIC,61,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2004",IDC_STATIC,61,50,119,8
+    LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,40,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Compiled: ",IDC_COMPILED,61,30,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.09",IDC_STATIC,61,20,119,8,SS_NOPREFIX
+    LTEXT           "WB6YMH",IDC_STATIC,61,60,119,8
+END
+
+IDD_VFO DIALOGEX 0, 0, 187, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "VFO"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_RX_FREQ,91,15,58,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_RX_PL,91,35,69,70,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_TX_OFFSET,91,55,69,70,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_TX_PL,91,75,69,70,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_TX_OFFSET_FREQ,91,95,58,14,ES_AUTOHSCROLL
+    RTEXT           "Receive Frequency",IDC_STATIC,23,15,63,14,
+                    SS_CENTERIMAGE
+    LTEXT           "Tx CTCSS",IDC_STATIC,51,75,34,12,SS_CENTERIMAGE
+    RTEXT           "Transmit offset",IDC_STATIC,21,95,63,14,SS_CENTERIMAGE
+    LTEXT           "Rx CTCSS",IDC_STATIC,52,35,34,12,SS_CENTERIMAGE
+    LTEXT           "Mhz",IDC_STATIC,151,15,14,14,SS_CENTERIMAGE
+    LTEXT           "Mhz",IDC_STATIC,151,95,14,14,SS_CENTERIMAGE
+END
+
+IDD_SCAN_ENABLE DIALOG DISCARDABLE  0, 0, 187, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Scan"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "VFO",IDC_SCAN_MODE1,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,50,30,10
+    CONTROL         "2",IDC_SCAN_MODE2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,59,20,10
+    CONTROL         "3",IDC_SCAN_MODE3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,68,20,10
+    CONTROL         "4",IDC_SCAN_MODE4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,77,20,10
+    CONTROL         "5",IDC_SCAN_MODE5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,86,20,10
+    CONTROL         "6",IDC_SCAN_MODE6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,95,20,10
+    CONTROL         "7",IDC_SCAN_MODE7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,104,20,10
+    CONTROL         "8",IDC_SCAN_MODE8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,113,20,10
+    CONTROL         "9",IDC_,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,50,20,
+                    10
+    CONTROL         "10",IDC_CHECK5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,
+                    59,24,10
+    CONTROL         "11",IDC_CHECK6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,47,
+                    68,24,10
+    CONTROL         "12",IDC_SCAN_MODE9,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,47,77,24,10
+    CONTROL         "13",IDC_SCAN_MODE10,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,47,86,24,10
+    CONTROL         "14",IDC_SCAN_MODE11,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,47,95,24,10
+    CONTROL         "15",IDC_CHECK12,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    47,104,24,10
+    CONTROL         "16",IDC_CHECK13,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    47,113,24,10
+    CONTROL         "17",IDC_CHECK16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,50,24,10
+    CONTROL         "18",IDC_CHECK17,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,59,24,10
+    CONTROL         "19",IDC_CHECK18,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,68,24,10
+    CONTROL         "20",IDC_CHECK19,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,77,24,10
+    CONTROL         "21",IDC_CHECK20,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,86,24,10
+    CONTROL         "22",IDC_CHECK21,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,95,24,10
+    CONTROL         "23",IDC_CHECK14,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,104,24,10
+    CONTROL         "24",IDC_CHECK22,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    79,113,24,10
+    CONTROL         "25",IDC_CHECK15,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,50,24,10
+    CONTROL         "26",IDC_CHECK23,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,59,24,10
+    CONTROL         "27",IDC_SCAN_MODE12,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,111,68,24,10
+    CONTROL         "28",IDC_CHECK11,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,77,24,10
+    CONTROL         "29",IDC_CHECK10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,86,24,10
+    CONTROL         "30",IDC_CHECK9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,95,24,10
+    CONTROL         "31",IDC_CHECK8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    111,104,24,10
+    CONTROL         "32",IDC_SCAN_MODE32,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,111,114,24,10
+    LTEXT           "Priority Channel",IDC_STATIC,7,7,50,14,SS_CENTERIMAGE
+    LTEXT           "2nd Priority",IDC_STATIC,21,24,36,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO1,63,7,48,91,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO2,63,24,48,68,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Non priority channels",IDC_STATIC,5,41,135,90
+END
+
+IDD_BAND_SCAN DIALOG DISCARDABLE  0, 0, 187, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Scan"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_BAND_SCAN_TOP,50,5,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BAND_SCAN_BOTTOM,50,25,40,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_BAND_SCAN_STEP,50,45,50,45,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_HANG_TIME,50,65,40,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_LOCKOUT_LIST,120,15,59,115,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Upper Limit",IDC_STATIC,7,5,36,14,SS_CENTERIMAGE
+    LTEXT           "Lower Limit",IDC_STATIC,7,25,36,14,SS_CENTERIMAGE
+    LTEXT           "Step",IDC_STATIC,27,45,16,14,SS_CENTERIMAGE
+    LTEXT           "Frequency",IDC_STATIC,10,110,34,8
+    LTEXT           "449.995",IDC_SCAN_FREQ,50,110,40,8
+    CTEXT           "Lock out list",IDC_STATIC,120,5,59,8
+    LTEXT           "Hang Time",IDC_STATIC,7,65,36,14,SS_CENTERIMAGE
+    LTEXT           "",IDC_PL_SCAN,50,120,55,8
+    LTEXT           "PL",IDC_STATIC,34,120,10,8
+    CONTROL         "Band Scan",IDC_BAND_SCAN,"Button",BS_AUTORADIOBUTTON | 
+                    BS_LEFTTEXT,5,85,51,10
+    CONTROL         "PL Scan",IDC_DO_PL_SCAN,"Button",BS_AUTORADIOBUTTON | 
+                    BS_LEFTTEXT,13,95,43,10
+END
+
+IDD_COMM_SETUP DIALOGEX 0, 0, 187, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Serial Port"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "&Serial Port",-1,45,42,96,53
+    CONTROL         "COM&1",IDC_COM1,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,53,56,35,10,0,HIDC_COM1
+    CONTROL         "COM&2",IDC_COM2,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,53,75,35,10,0,HIDC_COM2
+    CONTROL         "COM&3",IDC_COM3,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,101,56,35,10,0,HIDC_COM3
+    CONTROL         "COM&4",IDC_COM4,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,101,75,35,10,0,HIDC_COM4
+    PUSHBUTTON      "P&roperties",IDC_PROPERTIES,60,107,50,14,NOT WS_VISIBLE
+END
+
+IDD_CONFIGURE DIALOG DISCARDABLE  0, 0, 202, 151
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Configure"
+FONT 8, "MS Sans Serif"
+BEGIN
+    COMBOBOX        IDC_BAND,60,10,70,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_TX_VCO_SPLIT_F,60,30,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RX_VCO_SPLIT_F,60,50,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Range 1",IDC_RANGE1,140,30,50,14
+    PUSHBUTTON      "Range 2",IDC_RANGE2,140,50,50,14
+    COMBOBOX        IDC_CONTROL_SYS,60,70,85,65,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_OUT_0,30,90,60,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_OUT_1,30,110,60,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_OUT_2,30,130,60,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_OUT_5,130,90,60,65,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Send COS Status",IDC_SEND_COS,"Button",BS_AUTOCHECKBOX | 
+                    BS_LEFTTEXT | WS_TABSTOP,115,110,71,12
+    LTEXT           "Band",IDC_STATIC,35,10,18,12,SS_CENTERIMAGE
+    LTEXT           "Control System",IDC_STATIC,5,70,48,12,SS_CENTERIMAGE
+    LTEXT           "Tx VCO Split ",IDC_STATIC,10,30,43,14,SS_CENTERIMAGE
+    LTEXT           "Mhz",IDC_STATIC,105,30,14,14,SS_CENTERIMAGE
+    LTEXT           "Rx VCO Split ",IDC_STATIC,10,50,43,14,SS_CENTERIMAGE
+    LTEXT           "Mhz",IDC_STATIC,105,50,14,14,SS_CENTERIMAGE
+    LTEXT           "I/O 0",IDC_STATIC,5,90,18,12,SS_CENTERIMAGE
+    LTEXT           "I/O 1",IDC_STATIC,5,110,18,12,SS_CENTERIMAGE
+    LTEXT           "I/O 2",IDC_STATIC,5,130,18,12,SS_CENTERIMAGE
+    LTEXT           "I/O 5",IDC_STATIC,105,90,18,12,SS_CENTERIMAGE
+    CTEXT           "Set Defaults",IDC_DEFAULTS,140,15,50,8
+    LTEXT           "",IDC_TRANSFER_STATUS,120,130,70,8
+END
+
+IDD_DEBUG DIALOG DISCARDABLE  0, 0, 187, 138
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Debug"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_DEBUG_MSGS,7,7,173,124,ES_MULTILINE | ES_AUTOHSCROLL
+END
+
+IDD_MODE_SEL DIALOG DISCARDABLE  0, 0, 122, 66
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Mode Memory"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_MODE,40,15,40,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,65,45,50,14
+    LTEXT           "Mode",IDC_STATIC,15,15,19,14,SS_CENTERIMAGE
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "xcat MFC Application\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "xcat\0"
+            VALUE "LegalCopyright", "Copyright (C) 2003\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "xcat.EXE\0"
+            VALUE "ProductName", "xcat Application\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 193
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_VFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_SCAN_ENABLE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_BAND_SCAN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_CONFIGURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 195
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_DEBUG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 131
+    END
+
+    IDD_MODE_SEL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 115
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 59
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_BAND_SCAN DLGINIT
+BEGIN
+    IDC_BAND_SCAN_STEP, 0x403, 6, 0
+0x2035, 0x684b, 0x007a, 
+    IDC_BAND_SCAN_STEP, 0x403, 9, 0
+0x2e36, 0x3532, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 7, 0
+0x3031, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 9, 0
+0x3231, 0x352e, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 7, 0
+0x3531, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 7, 0
+0x3032, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 7, 0
+0x3532, 0x4b20, 0x7a68, "\000" 
+    IDC_BAND_SCAN_STEP, 0x403, 7, 0
+0x3033, 0x4b20, 0x7a68, "\000" 
+    0
+END
+
+IDD_CONFIGURE DLGINIT
+BEGIN
+    IDC_BAND, 0x403, 17, 0
+0x3031, 0x4d20, 0x7465, 0x7265, 0x2073, 0x4f28, 0x6c6e, 0x2979, "\000" 
+    IDC_BAND, 0x403, 16, 0
+0x2036, 0x654d, 0x6574, 0x7372, 0x2820, 0x6e4f, 0x796c, 0x0029, 
+    IDC_BAND, 0x403, 14, 0
+0x3031, 0x2620, 0x3620, 0x4d20, 0x7465, 0x7265, 0x0073, 
+    IDC_BAND, 0x403, 9, 0
+0x2032, 0x654d, 0x6574, 0x7372, "\000" 
+    IDC_BAND, 0x403, 8, 0
+0x3434, 0x2030, 0x684d, 0x007a, 
+    IDC_CONTROL_SYS, 0x403, 5, 0
+0x6f4e, 0x656e, "\000" 
+    IDC_CONTROL_SYS, 0x403, 22, 0
+0x6547, 0x656e, 0x6972, 0x2063, 0x202f, 0x4422, 0x756f, 0x2067, 0x6148, 
+0x6c6c, 0x0022, 
+    IDC_CONTROL_SYS, 0x403, 17, 0
+0x6150, 0x6f6c, 0x616d, 0x2072, 0x202f, 0x6143, 0x7463, 0x7375, "\000" 
+    IDC_OUT_0, 0x403, 10, 0
+0x4f43, 0x2053, 0x6e49, 0x7570, 0x0074, 
+    IDC_OUT_0, 0x403, 12, 0
+0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
+    IDC_OUT_1, 0x403, 11, 0
+0x5251, 0x2050, 0x6553, 0x656c, 0x7463, "\000" 
+    IDC_OUT_1, 0x403, 12, 0
+0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
+    IDC_OUT_2, 0x403, 18, 0
+0x6948, 0x6867, 0x5020, 0x776f, 0x7265, 0x5320, 0x6c65, 0x6365, 0x0074, 
+
+    IDC_OUT_2, 0x403, 12, 0
+0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
+    IDC_OUT_5, 0x403, 10, 0
+0x202b, 0x2e32, 0x2035, 0x684b, 0x007a, 
+    IDC_OUT_5, 0x403, 12, 0
+0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
+    0
+END
+
+IDD_VFO DLGINIT
+BEGIN
+    IDC_TX_OFFSET, 0x403, 17, 0
+0x7854, 0x3d20, 0x5220, 0x2078, 0x202b, 0x664f, 0x7366, 0x7465, "\000" 
+    IDC_TX_OFFSET, 0x403, 8, 0
+0x6953, 0x706d, 0x656c, 0x0078, 
+    IDC_TX_OFFSET, 0x403, 17, 0
+0x7854, 0x3d20, 0x5220, 0x2078, 0x202d, 0x664f, 0x7366, 0x7465, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About xcat..."
+    IDS_CAPTION             "Syntor X remote control"
+    IDS_COMM_INIT_FAIL      "Error: Unable to open communications port."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\xcat.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,7 @@
+// Microsoft Developer Studio generated Help ID include file.
+// Used by xcat.rc
+//
+#define HIDC_COM1                       0x808300fd    // IDD_COMM_SETUP
+#define HIDC_COM2                       0x808300fe    // IDD_COMM_SETUP
+#define HIDC_COM3                       0x808300ff    // IDD_COMM_SETUP
+#define HIDC_COM4                       0x80830100    // IDD_COMM_SETUP
