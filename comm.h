@@ -1,4 +1,8 @@
 // $Log: comm.h,v $
+// Revision 1.3  2004/08/08 23:49:16  Skip
+// Made mIOThreadEnable volatile to prevent a hang on exit when compiled
+// for *release*.  Bug originally found on Amsat Groundstation ... found again!
+//
 // Revision 1.2  2004/08/08 23:41:28  Skip
 // Complete implementation of mode scan.
 //
@@ -136,7 +140,7 @@ protected:
 
    HANDLE mIOWaitHandleArray[3];
 
-   int mIOThreadEnable;
+   volatile int mIOThreadEnable;
    DWORD mBytesRead;
    CCriticalSection mTxQueueLock;
    BYTE mRxBuf[ICOM_MAX_MSG_SIZE];
