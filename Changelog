@@ -1,0 +1,48 @@
+####################################
+Changes in version 0.14 12/31/2004 (limited beta relase)
+
+Minor enhancements: 
+1. Disabled signal reports in debug screen.
+2. Added display of successfully rx, tx frequency sets to sync data
+   debug screen.
+
+####################################
+Changes in version 0.13 12/27/2004 (limited beta release)
+
+Minor enhancements: 
+1. Added support for sync rx debug data (requires firmware update as well).
+2. Added request buttons to Debug mode for code plug data and sync rx
+   debug data.
+
+Bug fixes:
+1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+   being called when not on the scan page.
+2. Corrected bug in configuration of remote base  #4 in Palomar mode.
+
+####################################
+Changes in version 0.12 8/28/2004
+
+New features:
+1. Added the ability to change the serial port baudrate and the address used
+   by the Xcat on the bus.
+
+####################################
+Changes in version 0.11 never released
+
+####################################
+Changes in version 0.10 8/8/2004
+
+New features:
+1. Implemented the Mode Scan dialog.
+
+Bug fixes:
+1. Fixed bug that prevented program from exiting.  It *looked* like the 
+   program exited, but it was running the background without a window.
+   When this occurred the com port was still open so it prevented other
+   programs (including another copy of the Xcat control program) from opening
+   the com port.
+
+####################################
+Version 0.09 7/9/2004
+Initial release
+
