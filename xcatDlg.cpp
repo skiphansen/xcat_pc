@@ -1,7 +1,11 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.7  2005/01/08 19:42:59  Skip
+// Minor comment edits.
+//
 // Revision 1.6  2005/01/08 19:30:06  Skip
+// Version 0.15 changes:
 // 1. Replaced CCommSetup with new dialog that allows XCat's address and
 //    baudrate to be configured.
 // 2. Added code to read Xcat's configuration and mode data at program
@@ -9,13 +13,11 @@
 // 3. Added code to ManualPage to set dialog values based on code plug data
 //    when it is available.
 // 4. Added support for inverted mode select switches.
-// 5. Enabled recall model button on maual page. Previously it was only enabled
-//    in debug mode.
+// 5. Enabled recall model button on manual page. Previously it was only 
+//    enabled in debug mode.
 // 6. Added display of invalid frame counter to sync data debug output.
 // 7. Replaced recall mode dialog with new class that supports labeling modes.
 // 8. Added ability to save and reload mode labels.
-//
-// 6.
 //
 // Revision 1.5  2004/12/31 00:49:18  Skip
 // Version 0.14 changes:
@@ -30,7 +32,7 @@
 // 2. Added support for sync rx debug data (requires firmware update as well).
 // 3. Added request buttons to Debug mode for code plug data and sync rx
 //    debug data.
-// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+// 4. Corrected bug in configuration of remote base #4 in Palomar mode.
 //
 // Revision 1.3  2004/08/28 22:31:31  Skip
 // Added the ability to change the serial port baudrate and the address used
