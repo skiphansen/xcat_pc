@@ -1,4 +1,14 @@
 // $Log: Comm.cpp,v $
+// Revision 1.5  2005/01/06 16:06:25  Skip
+// 1. Modified Init() to wait for communications thread to start running before
+//    returning.  Fixes ASSERT failures when SendNextMessage() is called
+//    from the mainline thread by SendMessage() before ProcessRx() is called
+//    the first time.
+// 2. Doubled response timeout to 500 milliseconds to prvent premature
+//    timeouts at 1200 baud.
+// 3. Added gInvertedModeSel support to SelectMode().
+// 4. Added SetCommParameters().
+//
 // Revision 1.4  2004/12/27 05:55:24  Skip
 // Version 0.13:
 // 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
@@ -72,14 +82,16 @@ Comm::~Comm()
 {
    if(mComDev != INVALID_HANDLE_VALUE){
       // Kill the IO Thread
-      mIOThreadEnable = 2;
+      mIOThreadEnable = 3;
 
       if(!PurgeComm(mComDev,PURGE_TXABORT | PURGE_RXABORT)){
          ASSERT(FALSE);
       }
       // Wait for the IO Thread to terminate
 
-      while(mIOThreadEnable == 2);
+      while(mIOThreadEnable == 3) {
+			Sleep(10);
+		}
 
       CloseHandle(mComDev);
       CloseHandle(mRxOverlapped.hEvent);
@@ -100,7 +112,7 @@ BOOL Comm::Init(int ComPort, int Baudrate)
       // reinit, close the old port
 
       // Kill the IO Thread
-      mIOThreadEnable = 2;
+      mIOThreadEnable = 3;
 
       if(!PurgeComm(mComDev,PURGE_TXABORT | PURGE_RXABORT)){
          ASSERT(FALSE);
@@ -108,7 +120,9 @@ BOOL Comm::Init(int ComPort, int Baudrate)
 
       // Wait for the IO Thread to terminate
 
-      while(mIOThreadEnable == 2);
+      while(mIOThreadEnable == 3) {
+			Sleep(10);
+		}
 
       if(!CloseHandle(mComDev))
          ASSERT(FALSE);
@@ -202,6 +216,10 @@ BOOL Comm::Init(int ComPort, int Baudrate)
    mIOThreadEnable = 1;
    IOThread = AfxBeginThread(RxThreadControl,(LPVOID) this,THREAD_PRIORITY_ABOVE_NORMAL);
 
+// Wait for IO thread to startup
+	while(mIOThreadEnable == 1) {
+		Sleep(10);
+	}
    ASSERT(IOThread != NULL);
    return TRUE;
 }
@@ -315,7 +333,7 @@ void Comm::SendNextMessage(bool bRetry)
             mTxFramesSent++;
          }
       }
-      SetTimeout(&mTxTimeout,250);
+      SetTimeout(&mTxTimeout,500);
    }
 }
 
@@ -337,7 +355,8 @@ void Comm::IOThreadMainLoop()
 
    ProcessRx();
 
-   while(mIOThreadEnable == 1) {
+   mIOThreadEnable++;
+   while(mIOThreadEnable == 2) {
       DWORD WaitTimeout;
 
       if(mTxTimeout.time == 0) {
@@ -916,10 +935,11 @@ void Comm::RecallMode()
    }
 }
 
+/* Mode 1 -> 32 */
 void Comm::SelectMode(unsigned char Mode)
 {
    AppMsg *pMsg = new AppMsg;
-   int Bcd = Mode - 1;
+	int Bcd = INVERT_MODE(Mode-1);
 
    Bcd = (Bcd % 10) | ((Bcd / 10) << 4);
 
@@ -980,4 +1000,20 @@ void Comm::GetSyncData()
    }
 }
 
+void Comm::SetCommParameters(int Baudrate,int Adr)
+{
+   AppMsg *pMsg = new AppMsg;
+
+   if(pMsg != NULL) {
+      memset(pMsg,0,sizeof(AppMsg));
+      InitMsgHeader(&pMsg->Hdr,gXcatAdr,0xaa);
+      int i = 0;
+      pMsg->Data[i++] = 0xa;
+      pMsg->Data[i++] = (BYTE) Baudrate;
+      pMsg->Data[i++] = (BYTE) Adr;
+      pMsg->Data[i++] = 0xfd;
+      pMsg->DataLen = sizeof(CI_V_Hdr) + i;
+      SendMessage(pMsg);
+   }
+}
 
