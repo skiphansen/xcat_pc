@@ -1,4 +1,13 @@
 // $Log: Comm.cpp,v $
+// Revision 1.4  2004/12/27 05:55:24  Skip
+// Version 0.13:
+// 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+//    being called when not on the scan page.
+// 2. Added support for sync rx debug data (requires firmware update as well).
+// 3. Added request buttons to Debug mode for code plug data and sync rx
+//    debug data.
+// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+//
 // Revision 1.3  2004/08/28 22:31:30  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -957,6 +966,18 @@ void Comm::GetSigReport()
    }
 }
 
+void Comm::GetSyncData()
+{
+   AppMsg *pMsg = new AppMsg;
 
+   if(pMsg != NULL) {
+      memset(pMsg,0,sizeof(AppMsg));
+      InitMsgHeader(&pMsg->Hdr,gXcatAdr,0xaa);
+      pMsg->Data[0] = 9;
+      pMsg->Data[1] = 0xfd;
+      pMsg->DataLen = sizeof(CI_V_Hdr) + 2;
+      SendMessage(pMsg);
+   }
+}
 
 

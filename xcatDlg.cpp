@@ -1,6 +1,15 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.4  2004/12/27 05:55:24  Skip
+// Version 0.13:
+// 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+//    being called when not on the scan page.
+// 2. Added support for sync rx debug data (requires firmware update as well).
+// 3. Added request buttons to Debug mode for code plug data and sync rx
+//    debug data.
+// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+//
 // Revision 1.3  2004/08/28 22:31:31  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -187,8 +196,10 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
       switch(pMsg->Data[0]) {
          case 0x80:  // response to get vfo raw data
             memcpy(gModeData,&pMsg->Data[1],sizeof(gModeData));
-            ScanPage.ModeData();
-            if(GetActivePage() == &DebugMsgs) {
+            if(GetActivePage() == &ScanPage) {
+					ScanPage.ModeData();
+				}
+            else if(GetActivePage() == &DebugMsgs) {
                DebugMsgs.ModeData(&pMsg->Data[1]);
             }
             else if(GetActivePage() == &Configure) {
@@ -219,6 +230,9 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
             if(GetActivePage() == &BandScan) {
                BandScan.CarrierDetectChange(bHaveSignal);
             }
+				else if(GetActivePage() == &DebugMsgs) {
+               DebugMsgs.SignalReport(pMsg->Data[1],pMsg->Data[2]);
+				}
             break;
 
          case 0x82:  // get firmware version number response 
@@ -254,8 +268,11 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
             break;
          }
 
-         case 0x89:  // Debug info
+         case 0x89:  // Sync data debug info
          {
+            if(GetActivePage() == &DebugMsgs) {
+               DebugMsgs.SyncDebugData(&pMsg->Data[1]);
+            }
             break;
          }
       }
@@ -1373,6 +1390,9 @@ BEGIN_MESSAGE_MAP(CDebugMsgs, CPropertyPage)
    //{{AFX_MSG_MAP(CDebugMsgs)
       // NOTE: the ClassWizard will add message map macros here
    //}}AFX_MSG_MAP
+   ON_BN_CLICKED(ID_GET_CODEPLUG_DATA,OnGetCodePlugData)
+   ON_BN_CLICKED(ID_GET_SYNC_DEBUG,OnGetSyncData)
+   ON_BN_CLICKED(ID_GET_SIG_REPORT,OnGetSigReport)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1380,33 +1400,74 @@ END_MESSAGE_MAP()
 
 BOOL CDebugMsgs::OnSetActive() 
 {
-   CComm.GetModeData();
-#if 0
-   CComm.GetSigReport();
-#endif
+   SetButtonMode(IDOK,ID_GET_CODEPLUG_DATA,"Code Plug",TRUE,FALSE);
+   SetButtonMode(IDCANCEL,ID_GET_SYNC_DEBUG,"Sync Data",TRUE,FALSE);
+   SetButtonMode(ID_APPLY_NOW,ID_GET_SIG_REPORT,"Sig report",FALSE,TRUE);
+   SetButtonMode(IDHELP,0,NULL,FALSE,TRUE);
+   
+	return CPropertyPage::OnSetActive();
+}
 
-   mEdit.SetWindowText("");
-   return CPropertyPage::OnSetActive();
+void CDebugMsgs::OnGetCodePlugData()
+{
+   CComm.GetModeData();
+}
+
+void CDebugMsgs::OnGetSyncData()
+{
+   CComm.GetSyncData();
+}
+
+void CDebugMsgs::OnGetSigReport()
+{
+   CComm.GetSigReport();
 }
 
 void CDebugMsgs::ModeData(unsigned char *Data)
 {
-   char Text[80];
-   char *cp = Text;
+   CString Text;
+	CString Temp;
 
+	Text.Format("Raw mode 1 code plug data:\r\n");
    for(int i = 0; i < 8; i++) {
-      cp += sprintf(cp,"%02X ",Data[i]);
+      Temp.Format("%02X ",Data[i]);
+		Text += Temp;
    }
-   strcat(cp,"\r\n");
-   cp += 2;
+   Text += "\r\n";
 
    for(; i < 16; i++) {
-      cp += sprintf(cp,"%02X ",Data[i]);
+      Temp.Format("%02X ",Data[i]);
+		Text += Temp;
    }
-   strcat(cp,"\r\n");
+   Text += "\r\n";
 
    mEdit.SetWindowText(Text);
+}
 
+void CDebugMsgs::SyncDebugData(unsigned char *Data)
+{
+   CString Text;
+	CString Temp;
+	int Bytes;
+
+	Bytes = Data[5]/8;
+	if((Data[5] % 8) != 0) {
+		Bytes++;
+	}
+
+	Text.Format("Received %d bits (%d bytes):\r\n",Data[5],Bytes);
+	if(Bytes > 5) {
+		Bytes = 5;
+	}
+   for(int i = 0; i < Bytes; i++) {
+      Temp.Format("%02X ",Data[i]);
+		Text += Temp;
+   }
+	Temp.Format("\r\nTotal frames %d\r\nSerial input disabled after %d bits",
+					Data[6],Data[7]);
+	Text += Temp;
+
+   mEdit.SetWindowText(Text);
 }
 
 void CDebugMsgs::SignalReport(int Mode,int bSignal)
@@ -1526,7 +1587,7 @@ void CConfigure::OnSetConfig()
          break;
 
       case 5:  // Palomar Telecom / Cactus / Remote base #4
-         Config[0] |= 0xd0;
+         Config[0] |= 0xe0;
          break;
    }
    
@@ -1594,7 +1655,7 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
          ControlSystemSel = 4;
          break;
 
-      case 0xd:   // Palomar Telecom / Cactus / Remote base #4
+      case 0xe:   // Palomar Telecom / Cactus / Remote base #4
          ControlSystemSel = 5;
          break;
    }

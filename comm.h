@@ -1,4 +1,13 @@
 // $Log: comm.h,v $
+// Revision 1.5  2004/12/27 05:55:24  Skip
+// Version 0.13:
+// 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+//    being called when not on the scan page.
+// 2. Added support for sync rx debug data (requires firmware update as well).
+// 3. Added request buttons to Debug mode for code plug data and sync rx
+//    debug data.
+// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+//
 // Revision 1.4  2004/08/28 22:31:30  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -93,6 +102,7 @@ public:
    void SelectMode(unsigned char Mode);
    void SetModeData(unsigned char *Data);
    void GetSigReport();
+	void GetSyncData();
 
 public:
    // Attributes

@@ -1,6 +1,15 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.4  2004/12/27 05:55:24  Skip
+// Version 0.13:
+// 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+//    being called when not on the scan page.
+// 2. Added support for sync rx debug data (requires firmware update as well).
+// 3. Added request buttons to Debug mode for code plug data and sync rx
+//    debug data.
+// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+//
 // Revision 1.3  2004/08/28 22:31:31  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -102,7 +111,10 @@ enum XCAT_PRIVATE_IDS {
    ID_SAVE_CODEPLUG,
    ID_RESTORE_CODEPLUG,
    ID_COMM_ERROR,
-	ID_SET_XCAT_ADR
+	ID_SET_XCAT_ADR,
+	ID_GET_CODEPLUG_DATA,
+	ID_GET_SYNC_DEBUG,
+	ID_GET_SIG_REPORT
 };
 
 extern HWND hMainWindow;

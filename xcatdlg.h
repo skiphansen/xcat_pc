@@ -1,4 +1,13 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.4  2004/12/27 05:55:24  Skip
+// Version 0.13:
+// 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
+//    being called when not on the scan page.
+// 2. Added support for sync rx debug data (requires firmware update as well).
+// 3. Added request buttons to Debug mode for code plug data and sync rx
+//    debug data.
+// 4. Corrected bug in configuration of remote base  #4 in Palomar mode.
+//
 // Revision 1.3  2004/08/28 22:31:31  Skip
 // Added the ability to change the serial port baudrate and the address used
 // by the Xcat on the bus.
@@ -361,6 +370,7 @@ public:
    ~CDebugMsgs();
    void ModeData(unsigned char *Data);
    void SignalReport(int Mode,int bSignal);
+	void SyncDebugData(unsigned char *Data);
 
 // Dialog Data
    //{{AFX_DATA(CDebugMsgs)
@@ -380,6 +390,10 @@ public:
 
 // Implementation
 protected:
+	void OnGetSyncData();
+	void OnGetCodePlugData();
+	void OnGetSigReport();
+
    // Generated message map functions
    //{{AFX_MSG(CDebugMsgs)
       // NOTE: the ClassWizard will add member functions here
