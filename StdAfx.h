@@ -3,8 +3,12 @@
 //      are changed infrequently
 //
 // $Log: StdAfx.h,v $
-// Revision 1.1  2004/07/09 23:12:30  Skip
-// Initial revision
+// Revision 1.2  2005/01/08 19:18:06  Skip
+// Added math.h.
+//
+// Revision 1.1.1.1  2004/07/09 23:12:30  Skip
+// Initial import of Xcat PC control program - V0.09.
+// Shipped with first 10 Xcat boards.
 //
 
 #if !defined(AFX_STDAFX_H__0D8158B6_CD87_4D68_89E1_E6484B9BFC45__INCLUDED_)
@@ -30,5 +34,6 @@
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
 #include <afxmt.h>         // Multitread extensions
+#include <math.h>
 
 #endif // !defined(AFX_STDAFX_H__0D8158B6_CD87_4D68_89E1_E6484B9BFC45__INCLUDED_)
