@@ -1,6 +1,11 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.5  2005/01/08 19:20:24  Skip
+// 1. Added global variables ModeName[], LastModelSel, gInvertedModeSel,
+//    gConfig, and g_bHaveModeData.
+// 2. Added INVERT_MODE macro.
+//
 // Revision 1.4  2004/12/27 05:55:24  Skip
 // Version 0.13:
 // 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
@@ -35,6 +40,8 @@
 
 #include "resource.h"      // main symbols
 
+#define	CONFIG_LEN	2
+
 // global variables
 extern int gComPort;
 extern int gBaudrate;
@@ -51,7 +58,16 @@ extern int gDebugMode;
 extern int gXcatAdr;
 extern CString gSaveFilename;
 extern CString gRestoreFilename;
+extern CString gModeName[32];
 extern unsigned char gModeData[16];
+extern int g_bHaveModeData;
+extern unsigned char gConfig[CONFIG_LEN];
+extern int g_bHaveConfig;;
+extern int gLastModeSel;
+extern int gInvertedModeSel;
+
+// in x 0 -> 31, out x 31 -> 0
+#define INVERT_MODE(x)  (gInvertedModeSel ? (~(x) & 0x1f) : (x))
 
 typedef struct {
    const char *Name;
