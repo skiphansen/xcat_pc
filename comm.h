@@ -1,4 +1,7 @@
 // $Log: comm.h,v $
+// Revision 1.6  2005/01/06 16:07:21  Skip
+// Added SetCommParameters() and  CommunicationsUp().
+//
 // Revision 1.5  2004/12/27 05:55:24  Skip
 // Version 0.13:
 // 1. Fixed crash in Debug mode caused by calling ScanPage.ModeData()
@@ -103,7 +106,8 @@ public:
    void SetModeData(unsigned char *Data);
    void GetSigReport();
 	void GetSyncData();
-
+	void SetCommParameters(int Baudrate,int Adr);
+	bool CommunicationsUp() { return m_bReportErrors; }
 public:
    // Attributes
    BYTE mOurAdr;
