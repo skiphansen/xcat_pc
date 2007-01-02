@@ -1,4 +1,39 @@
 ####################################
+Changes in version 0.17 1/2/2007
+
+New features:
+1. Added support for DPL (DCS) encoding and decoding to the VFO page.
+2. Added a DPL scan option to Scan page. 
+3. Added support for UHF range 1 radios (420).  Updated Xcat Firmware required.
+4. Added receive only support to the VFO page.  Receive only is now offered
+   as a choice in the transmitter offset box.
+5. Added support for the transmitter timeout timer to the VFO page.
+6. Added code to save retrieved code plug data to c:\xcat.bin when the code
+   plug data is read via the Debug Page.
+7. Enabled VCO split frequencies to be specified for UHF range radios. Updated 
+   Xcat Firmware is required.
+8. Corrected the default value of the receive VCO split frequency for VHF range
+   2 radios (was 215.9, should be 203.9).
+
+The DPL support is lightly tested.  There is some uncertainty about that correct
+value for 3 of the bits that make up the programming information for each code.
+Thanks to Andy Brinkley NC4AB DPL codes 023 to 223 match the values generated
+by the official Motorola suit case programmer.  The remaining codes may or may 
+not work with other than Motorola equipment or Yeasu VX-5R used by Dennis 
+KB8ZQZ to empirically determine working values.  The Xcat control program will 
+be updated as more information becomes available.
+
+Support for 420 Mhz and UHF VCO split frequencies was added in version 0.23 
+of the Xcat firmware which has not been released yet. Please contact me if 
+you would like to help test these new features.
+
+####################################
+Changes in version 0.16 2/11/2005 (limited beta release)
+
+Minor enhancements: 
+1. Added display of new serial frame size debug variable in debug page.
+
+####################################
 Changes in version 0.15 1/8/2005
 
 New features:
