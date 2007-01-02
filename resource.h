@@ -27,6 +27,7 @@
 #define IDC_TX_PL                       1000
 #define IDC_RX_PL                       1001
 #define IDC_TX_OFFSET                   1002
+#define IDC_TX_TIMEOUT                  1003
 #define IDC_EDIT1                       1004
 #define IDC_RX_FREQ                     1004
 #define IDC_DEBUG_MSGS                  1004
@@ -74,16 +75,25 @@
 #define IDC_DO_PL_SCAN                  1031
 #define IDC_DEFAULTS                    1031
 #define IDC_COMPILED                    1032
+#define IDC_DO_DPL_SCAN                 1032
 #define IDC_TRANSFER_STATUS             1033
 #define IDC_SCAN_MODE10                 1034
 #define IDC_TB_ENABLED                  1036
 #define IDC_SCAN_ENABLED                1037
 #define IDC_EDIT_NAME                   1038
+#define IDC_RX_PL_ENABLE                1041
+#define IDC_RX_DPL_ENABLE               1042
+#define IDC_TX_PL_ENABLE                1043
+#define IDC_TX_DPL_ENABLE               1044
 #define IDC_SCAN_MODE4                  1045
+#define IDC_RX_DPL_ENABLE_INV           1045
 #define IDC_SCAN_MODE5                  1046
+#define IDC_TX_DPL_ENABLE_INV           1046
 #define IDC_SCAN_MODE6                  1047
+#define IDC_TX_OFFSET_LABEL             1047
 #define IDC_CHECK9                      1048
 #define IDC_SCAN_MODE30                 1048
+#define IDC_TX_TIMEOUT_LABEL            1048
 #define IDC_CHECK10                     1049
 #define IDC_SCAN_MODE29                 1049
 #define IDC_CHECK11                     1050
@@ -129,7 +139,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif
