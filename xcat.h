@@ -1,6 +1,12 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.6  2007/01/02 17:28:24  Skip
+// AAdded registry backed globals gVCORxSplitVHF, gVCOTxSplitVHF, gVCORxSplit420,
+// gVCOTxSplit420, gVCORxSplit440, and gVCOTxSplit440.
+//
+// Added globals gRxDCS, gTxDCS, and gTxTimeout.
+//
 // Revision 1.5  2005/01/08 19:20:24  Skip
 // 1. Added global variables ModeName[], LastModelSel, gInvertedModeSel,
 //    gConfig, and g_bHaveModeData.
@@ -52,8 +58,11 @@ extern double gBandScanHangTime;
 extern double gRxFrequency;
 extern double gTxOffsetFreq;
 extern int gRxCTSS;
+extern int gRxDCS;
 extern int gTxCTSS;
+extern int gTxDCS;
 extern int gTxOffset;
+extern int gTxTimeout;
 extern int gDebugMode;
 extern int gXcatAdr;
 extern CString gSaveFilename;
@@ -65,6 +74,12 @@ extern unsigned char gConfig[CONFIG_LEN];
 extern int g_bHaveConfig;;
 extern int gLastModeSel;
 extern int gInvertedModeSel;
+extern double gVCORxSplitVHF;
+extern double gVCOTxSplitVHF;
+extern double gVCORxSplit420;
+extern double gVCOTxSplit420;
+extern double gVCORxSplit440;
+extern double gVCOTxSplit440;
 
 // in x 0 -> 31, out x 31 -> 0
 #define INVERT_MODE(x)  (gInvertedModeSel ? (~(x) & 0x1f) : (x))

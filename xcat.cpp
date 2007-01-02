@@ -1,6 +1,12 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.5  2007/01/02 17:28:24  Skip
+// AAdded registry backed globals gVCORxSplitVHF, gVCOTxSplitVHF, gVCORxSplit420,
+// gVCOTxSplit420, gVCORxSplit440, and gVCOTxSplit440.
+//
+// Added globals gRxDCS, gTxDCS, and gTxTimeout.
+//
 // Revision 1.4  2005/01/08 19:19:50  Skip
 // Added global variables ModeName[], LastModelSel, gInvertedModeSel,
 // gConfig, and g_bHaveModeData.
@@ -79,8 +85,11 @@ double gBandScanHangTime;
 double gRxFrequency;
 double gTxOffsetFreq;
 int gRxCTSS;
+int gRxDCS;
 int gTxCTSS;
+int gTxDCS;
 int gTxOffset;
+int gTxTimeout;
 int gDebugMode;
 int gXcatAdr;
 CString gSaveFilename;
@@ -88,6 +97,12 @@ CString gRestoreFilename;
 CString gModeName[32];
 int gLastModeSel = 1;
 int gInvertedModeSel;
+double gVCORxSplitVHF;
+double gVCOTxSplitVHF;
+double gVCORxSplit420;
+double gVCOTxSplit420;
+double gVCORxSplit440;
+double gVCOTxSplit440;
 
 unsigned char gModeData[16];
 int g_bHaveModeData = FALSE;
@@ -144,6 +159,12 @@ RegVariable RegVars[] = {
    {"Mode31Name",&gModeName[30],REG_VAR_TYPE_CSTRING,"Mode 31"},
    {"Mode32Name",&gModeName[31],REG_VAR_TYPE_CSTRING,"Mode 32"},
    {"InvertedModeSel",&gInvertedModeSel,REG_VAR_TYPE_INT,"0"},
+   {"VhfVCORxSplit",&gVCORxSplitVHF,REG_VAR_TYPE_DOUBLE,"198.5"},
+   {"VhfVCOTxSplit",&gVCOTxSplitVHF,REG_VAR_TYPE_DOUBLE,"144.0"},
+   {"VCORxSplit420",&gVCORxSplit420,REG_VAR_TYPE_DOUBLE,"466.7"},
+   {"VCOTxSplit420",&gVCOTxSplit420,REG_VAR_TYPE_DOUBLE,"412.8"},
+   {"VCORxSplit440",&gVCORxSplit440,REG_VAR_TYPE_DOUBLE,"405.6"},
+   {"VCOTxSplit440",&gVCOTxSplit440,REG_VAR_TYPE_DOUBLE,"459.5"},
    {NULL}
 };
 
