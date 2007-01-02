@@ -1,4 +1,18 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.6  2007/01/02 17:28:56  Skip
+// 1. Added support for DPL (DCS) encoding and decoding to the VFO page.
+// 2. Added a DPL scan option to Scan page.
+// 3. Added support for UHF range 1 radios (420).  Updated Xcat Firmware required.
+// 4. Added receive only support to the VFO page.  Receive only is now offered
+//    as a choice in the transmitter offset box.
+// 5. Added support for the transmitter timeout timer to the VFO page.
+// 6. Added code to save retrieved code plug data to c:\xcat.bin when the code
+//    plug data is read via the Debug Page.
+// 7. Enabled VCO split frequencies to be specified for UHF range radios. Updated
+//    Xcat Firmware is required.
+// 8. Corrected the default value of the receive VCO split frequency for VHF range
+//    2 radios (was 215.9, should be 203.9).
+//
 // Revision 1.5  2005/01/08 19:31:30  Skip
 // 1. Replaced CCommSetup with new dialog that allows XCat's address and
 //    baudrate to be configured.
@@ -87,7 +101,7 @@ protected:
    afx_msg void OnRange1();
    afx_msg void OnRange2();
    afx_msg void OnSelchangeBand();
-   //}}AFX_MSG
+	//}}AFX_MSG
    DECLARE_MESSAGE_MAP()
 
    void InitButtons();
@@ -97,6 +111,8 @@ protected:
    void OnRestoreCodePlug();
    void OnSaveCodePlug();
    void SendModeData();
+	int  GetSelectedConfig();
+	void SaveSplits();
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,14 +131,24 @@ public:
 
 // Dialog Data
    //{{AFX_DATA(ManualPage)
-   enum { IDD = IDD_VFO };
+	enum { IDD = IDD_VFO };
+	CComboBox	mTxTimeout;
    CComboBox   mTxOffset;
    CComboBox   mTxPL;
    CComboBox   mRxPL;
    double   mRxFrequency;
    double   mTxOffsetFreq;
-   //}}AFX_DATA
+	//}}AFX_DATA
+	bool mbRxDPL;
+	bool mbInvRxDPL;
+	bool mbTxDPL;
+	bool mbInvTxDPL;
 
+	bool mbTxCBMode;
+	bool mbLastTxCBMode;
+	
+	bool mbRxCBMode;
+	bool mbLastRxCBMode;
 
 // Overrides
    // ClassWizard generate virtual function overrides
@@ -138,7 +164,16 @@ protected:
    // Generated message map functions
    //{{AFX_MSG(ManualPage)
    virtual BOOL OnInitDialog();
-   //}}AFX_MSG
+	afx_msg void OnRxPlEnable();
+	afx_msg void OnTxDplEnable();
+	afx_msg void OnRxDplEnable();
+	afx_msg void OnTxPlEnable();
+	afx_msg void OnTxDplEnableInv();
+	afx_msg void OnRxDplEnableInv();
+	afx_msg void OnSelchangeRxPl();
+	afx_msg void OnSelchangeTxPl();
+	afx_msg void OnSelchangeTxOffset();
+	//}}AFX_MSG
 
    float mLastEncodePL;
    float mLastDecodePL;
@@ -147,6 +182,8 @@ protected:
    void OnManualSet();
    void OnSaveMode();
    void OnRecallMode();
+	void UpdateRxCB();
+	void UpdateTxCB();
    DECLARE_MESSAGE_MAP()
 };
 
@@ -218,6 +255,7 @@ public:
 
    bool m_bScanActive;
    bool m_bPlScan;
+	bool m_bDPlScan;
    bool  m_bHaveSignal;
    double mCurrentFreq;     // In Mhz
    double mLastBottom;
@@ -259,13 +297,15 @@ protected:
    afx_msg void OnDestroy();
    afx_msg void OnBandScan();
    afx_msg void OnDoPlScan();
-   //}}AFX_MSG
+	afx_msg void OnDoDplScan();
+	//}}AFX_MSG
    void OnStart();
    void OnLockout();
    void ChangeFrequency();
    bool LockedOutFreq();
    void OnDelLockout();
    void ChangePL(bool bSetPl);
+	void ChangeDPL();
    void OnSkip();
 
    DECLARE_MESSAGE_MAP()
@@ -273,6 +313,7 @@ protected:
    int   mFreqStep;        // In hz
    bool  m_bListSelected;
    int mPlFreq;
+   int mDPlFreq;
 };
 
 /////////////////////////////////////////////////////////////////////////////
