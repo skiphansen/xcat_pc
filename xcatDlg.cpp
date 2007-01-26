@@ -1,6 +1,19 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.9  2007/01/26 00:24:00  Skip
+// 1. Moved global ctable into ManualPage::ModeData(), ctable from syntorxdecode
+//    and syntorxgen aren't the same animal!
+// 2. Corrected TxOffset calculation in ManualPage::ModeData for response 0x85,
+//    the byte order was backwards.  (The result wasn't used any where, it
+//    was just for debug).
+// 3. Added ctable from syntorxgen to SetCodePlugRxFrequency.
+// 4. Added code to SetCodePlugRxFrequency to set ModeData[8] based on the
+//    selected reference frequency.
+// 5. Corrected clearing of code plug Rx bits in SetCodePlugRxFrequency.
+// 6. Corrected rounding errors in calculation of TxOffsetFreq in
+//    ManualPage::ModeData.
+//
 // Revision 1.8  2007/01/02 17:28:56  Skip
 // 1. Added support for DPL (DCS) encoding and decoding to the VFO page.
 // 2. Added a DPL scan option to Scan page.
@@ -94,7 +107,6 @@ static char THIS_FILE[] = __FILE__;
 
 HWND hMainWindow;
 
-unsigned int ctable[4] = { 0, 1, 3, 2 };
 
 // bit swap & invert lookup table
 unsigned int dpltable[8] = { 7, 3, 5, 1, 6, 2, 4, 0 };
@@ -301,13 +313,8 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
          }
 
          case 0x85:  // get Tx offset
-         {  int TxOffset = 0;
-            int i;
-            for(i = 0; i < 4; i++) {
-               TxOffset <<= 4;
-               TxOffset += pMsg->Data[i+1];
-            }
-
+         {
+            int TxOffset = *((int *) &pMsg->Data[1]);
             break;
          }
 
@@ -581,6 +588,7 @@ void SetCodePlugRxFrequency(double RxFreq,unsigned char *ModeData)
 	bool bLowBand = FALSE;
 	unsigned int rxfreq = (unsigned int) floor((RxFreq * 1000000.0L) + 0.5L);
 	int ConfigBand = gConfig[0] & CONFIG_BAND_MASK;
+	static unsigned char ctable[3] = { 2, 1, 3 };
 
 /* Default: "VHF RSS prefers the 5 KHz reference frequency. All other
 	radios prefer the 6.25 kHz frequency." -- From Pakman's code plug
@@ -621,6 +629,26 @@ void SetCodePlugRxFrequency(double RxFreq,unsigned char *ModeData)
 			return;
 		}
 	}
+
+	ModeData[8] &= 0xfc;
+	switch(refreq)
+	{
+		case 5000:
+			ModeData[8] |= 3;
+			break;
+
+		case 6250:
+			break;
+
+		case 4166:
+			ModeData[8] |= 2;
+			break;
+
+		default:
+			ModeData[8] |= 1;
+			break;
+	}
+
 	rxvcofreq = rxfreq + rxif;
 
 	rxn = rxvcofreq / refreq;
@@ -643,9 +671,9 @@ void SetCodePlugRxFrequency(double RxFreq,unsigned char *ModeData)
 	rxn2 = rxn1 / 63;
 	rxb = rxn2 - rxa;
 	
-	for(int i = 0xc; i < 0x10; i++) {
+	for(int i = 0xb; i < 0x10; i++) {
 	// Clear Rx bits
-		ModeData[i] &= 0xf;
+		ModeData[i] &= 0xf0;
 	}
 	
 	accum |= GetRxVbits((double) rxvcofreq / 1000000.0) << 2;
@@ -862,6 +890,7 @@ void ManualPage::ModeData()
    double   TxOffsetFreq;
    CButton *pRB;
 	int ButtonID;
+	static unsigned int ctable[4] = { 0, 1, 3, 2 };
 
 	static int TxButtons[] = {
 		IDC_TX_PL_ENABLE,
@@ -959,7 +988,7 @@ void ManualPage::ModeData()
 	if(ftx != 0 && frx != 0) {
 		mRxFrequency = (double) frx / 1000000.0;
 		gRxFrequency = mRxFrequency;
-		TxOffsetFreq = ((double) ftx / 1000000.0) - mRxFrequency;
+		TxOffsetFreq = (ftx - frx) / 1000000.0;
 
 		if(TxOffsetFreq < 0) {
 		// Negative offset
@@ -3132,7 +3161,4 @@ void CCommSetup1::OnSet()
 		CPropertyPage::OnOK();
 	}
 }
-
-
-
 
