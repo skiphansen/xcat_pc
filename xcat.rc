@@ -91,7 +91,7 @@ BEGIN
     LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,40,119,8,
                     SS_NOPREFIX
     LTEXT           "Compiled: ",IDC_COMPILED,61,30,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.17",IDC_STATIC,61,20,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.18",IDC_STATIC,61,20,119,8,SS_NOPREFIX
     LTEXT           "WB6YMH",IDC_STATIC,61,60,119,8
 END
 
