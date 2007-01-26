@@ -1,4 +1,14 @@
 // $Log: Comm.cpp,v $
+// Revision 1.7  2007/01/26 00:28:40  Skip
+// 1. Modified debug code in Comm::SendNextMessage to lookup and display the
+//    description of the Xcat Cmd byte.
+// 2. Increased reponse timeout set by Comm::SendNextMessage from .5 seconds to
+//    2 seconds.
+// 3. Modified debug code in Comm::IOThreadMainLoop to lookup and display the
+//    description of the Xcat Cmd byte.
+// 4. Modified Comm::SetModeData to save mode raw mode data to c:\xcat_tx.bin
+//    when debug mode is enabled.
+//
 // Revision 1.6  2005/01/08 19:17:32  Skip
 // "The Xcat is Naked" -> "The Xcat Naked".
 //
@@ -41,6 +51,35 @@
 Comm CComm;
 #define MAX_RETRIES  5
 int tracecounter = 0;
+
+static char *XcatCmdLookup[] = {
+	"get vfo raw data",					// 0x00
+	"set raw vfo data",					// 0x01
+	"get firmware version number",	// 0x02
+	"get configuration data",			// 0x03
+	"set configuration data",			// 0x04
+	"get Tx offset",						// 0x05
+	"set Tx offset",						// 0x06
+	"get VCO split frequencies",		// 0x07
+	"set VCO split frequencies",		// 0x08
+	"get sync data debug info",		// 0x09
+	"Set communications parameters",	// 0x0a
+};
+
+static char *XcatResponseLookup[] = {
+	"response to get vfo raw data",	// 0x80
+	"Signal/mode report to PC",	// 0x81
+	"get firmware version number response",	// 0x82
+	"response to get configuration data",	// 0x83
+	"0x84",
+	"get Tx offset response",	// 0x85
+	"0x86",
+	"get VCO split frequencies response",	// 0x87
+	"0x88",
+	"get sync data debug response",	// 0x89
+	"Set communications parameters ACK",	// 0x8a
+};
+
 
 // Set time in pTimeout TimeoutMs milliseconds from now
 void SetTimeout(struct _timeb *pTimeout,int TimeoutMs)
@@ -319,7 +358,21 @@ void Comm::SendNextMessage(bool bRetry)
       }
       else {
          TRACE3("sending %d byte message 0x%x, 0x%x\n",j,Temp[4],Temp[5]);
-         LOG(("sending:\n"));
+			if(pMsg->Hdr.Cmd == ICOM_CMD_XCAT) {
+				BYTE XcatCmd = pMsg->Data[0];
+				if(XcatCmd < 0xb) {
+					LOG(("sending %s:\n",XcatCmdLookup[XcatCmd]));
+				}
+				else if(XcatCmd > 0x7f && XcatCmd < 0x8b) {
+					LOG(("sending %s:\n",XcatResponseLookup[XcatCmd-0x80]));
+				}
+				else {
+					LOG(("sending:\n"));
+				}
+			}
+			else {
+				LOG(("sending:\n"));
+			}
       }
       LOG_HEX(Temp,j);
       mComState = SENDING;
@@ -336,7 +389,7 @@ void Comm::SendNextMessage(bool bRetry)
             mTxFramesSent++;
          }
       }
-      SetTimeout(&mTxTimeout,500);
+      SetTimeout(&mTxTimeout,2000);
    }
 }
 
@@ -510,9 +563,27 @@ void Comm::ProcessRx()
                if(RxByte == 0xfd) {
                // We have a complete message
                   AppMsg *pMsg = (AppMsg *) new char[sizeof(AppMsg)+mRxCount];
-                  LOG(("Received:\n"));
-                  LOG_HEX(mRxMsg,mRxCount);
                   if(pMsg != NULL) {
+                     pMsg->DataLen = mRxCount;
+                     memcpy(&pMsg->Hdr,mRxMsg,mRxCount);
+
+							if(pMsg->Hdr.Cmd == ICOM_CMD_XCAT) {
+								BYTE XcatCmd = pMsg->Data[0];
+								if(XcatCmd < 0xb) {
+									LOG(("Received %s:\n",XcatCmdLookup[XcatCmd]));
+								}
+								else if(XcatCmd > 0x7f && XcatCmd < 0x8b) {
+									LOG(("Received %s:\n",XcatResponseLookup[XcatCmd-0x80]));
+								}
+								else {
+									LOG(("Received:\n"));
+								}
+							}
+							else {
+								LOG(("Received:\n"));
+							}
+							LOG_HEX(mRxMsg,mRxCount);
+
                      if(!m_bReportErrors) {
                         m_bReportErrors = TRUE; // turn back on error reporting
                         CString *pErrMsg = new CString;
@@ -526,8 +597,6 @@ void Comm::ProcessRx()
                         }
                      }
 
-                     pMsg->DataLen = mRxCount;
-                     memcpy(&pMsg->Hdr,mRxMsg,mRxCount);
                      if(pMsg->Hdr.Cmd == 0xfb) {
                      // Ack
                         if(tracecounter++ > 64) {
@@ -959,7 +1028,16 @@ void Comm::SelectMode(unsigned char Mode)
 
 void Comm::SetModeData(unsigned char *Data)
 {
-   AppMsg *pMsg = new AppMsg;
+	if(gDebugMode) {
+		FILE *fp;
+
+		if((fp = fopen("c:\\xcat_tx.bin","w")) != NULL) {
+			fwrite(Data,16,1,fp);
+			fclose(fp);
+		}
+	}
+   
+	AppMsg *pMsg = new AppMsg;
 
    if(pMsg != NULL) {
       memset(pMsg,0,sizeof(AppMsg));
