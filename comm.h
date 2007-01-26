@@ -1,4 +1,7 @@
 // $Log: comm.h,v $
+// Revision 1.7  2007/01/26 00:29:18  Skip
+// Added defines for ICOM_CMD_SET_FREQ and ICOM_CMD_XCAT.
+//
 // Revision 1.6  2005/01/06 16:07:21  Skip
 // Added SetCommParameters() and  CommunicationsUp().
 //
@@ -30,6 +33,9 @@
 #define ICOM_MIN_MSG_SIZE  6
 #define ICOM_MAX_MSG_SIZE  1024  /* ? */
 #define ICOM_MAX_DATA_SIZE 17
+
+#define ICOM_CMD_SET_FREQ	5
+#define ICOM_CMD_XCAT		0xaa
 
 typedef struct {
    BYTE  Fe_1;
