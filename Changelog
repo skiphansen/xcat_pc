@@ -1,4 +1,17 @@
 ####################################
+Changes in version 0.18 1/26/2007
+
+Bug fixes:
+1. Corrected several bugs in the internal code plug data decoding introduced 
+   in version 0.17 which caused the transmit offset to be set to "Receive only"
+   a frequency was set.
+   
+2. Corrected rounding errors in calculation of transmit offset frequency from
+   code plug read back.
+   
+Thanks to Tim WD6AWP for reporting the bugs and help testing the fixes.
+
+####################################
 Changes in version 0.17 1/2/2007
 
 New features:
