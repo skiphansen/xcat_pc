@@ -1,5 +1,11 @@
 ####################################
-Changes in version 0.18 1/26/2007
+Changes in version 0.19 2/9/2007
+
+Removed some left over debug code from 0.18 and bumped version number
+for release.
+
+####################################
+Changes in version 0.18 1/19/2007 (limited beta release)
 
 Bug fixes:
 1. Corrected several bugs in the internal code plug data decoding introduced 
