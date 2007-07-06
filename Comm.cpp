@@ -1,4 +1,13 @@
 // $Log: Comm.cpp,v $
+// Revision 1.8  2007/07/06 13:43:59  Skip
+// 1. Changed MAX_RETRIES from 5 to 3.
+// 2. Changed response timeout from 2 seconds to .5 seconds.
+// 3. Added code to Comm::SendNextMessage to send a fake reply to
+//    the main window when an set communications parameters message
+//    fails.  This is necessary so the PC will actually change baudrates,
+//    otherwise we can get stuck out of sync with the Xcat unless we
+//    whack the baudrate variable in the registry manually.
+//
 // Revision 1.7  2007/01/26 00:28:40  Skip
 // 1. Modified debug code in Comm::SendNextMessage to lookup and display the
 //    description of the Xcat Cmd byte.
@@ -49,7 +58,7 @@
 #include "comm.h"
 
 Comm CComm;
-#define MAX_RETRIES  5
+#define MAX_RETRIES  3
 int tracecounter = 0;
 
 static char *XcatCmdLookup[] = {
@@ -329,6 +338,19 @@ void Comm::SendNextMessage(bool bRetry)
          }
          m_bReportErrors = FALSE;
       }
+		if(mTxHead->Hdr.Cmd == 0xaa && mTxHead->Data[0] == 0xa) {
+		// Set baudrate message failed.  
+		// Send a phoney ack so we'll change the PC's baudrate anyway.  
+		// Otherwise we can never sync baudrates unless we whack the registry.
+			AppMsg *pMsg = (AppMsg *) new char[sizeof(AppMsg)+mRxCount];
+			pMsg->Hdr.Cmd = 0xaa;
+			pMsg->Data[0] = 0x8a;
+
+			if(!m_pMainWnd->PostMessage(ID_RX_MSG,0,(LPARAM) pMsg)){
+				ASSERT(FALSE);
+			}
+		}
+
       DeleteTxMsg();
    }
    else {
@@ -389,7 +411,7 @@ void Comm::SendNextMessage(bool bRetry)
             mTxFramesSent++;
          }
       }
-      SetTimeout(&mTxTimeout,2000);
+      SetTimeout(&mTxTimeout,500);
    }
 }
 
