@@ -1,6 +1,11 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.7  2007/07/15 14:17:24  Skip
+// 1. Added gFirmwareVer, gFirmwareVerString, CONFIG_SQU_POT_MASK
+//    and g_bHaveFWVer.
+// 2. Increased CONFIG_LEN to 3 for squelch pot value.
+//
 // Revision 1.6  2007/01/02 17:28:24  Skip
 // AAdded registry backed globals gVCORxSplitVHF, gVCOTxSplitVHF, gVCORxSplit420,
 // gVCOTxSplit420, gVCORxSplit440, and gVCOTxSplit440.
@@ -46,7 +51,9 @@
 
 #include "resource.h"      // main symbols
 
-#define	CONFIG_LEN	2
+#define	CONFIG_LEN	3
+
+#define CONFIG_SQU_POT_MASK	0x58
 
 // global variables
 extern int gComPort;
@@ -71,7 +78,10 @@ extern CString gModeName[32];
 extern unsigned char gModeData[16];
 extern int g_bHaveModeData;
 extern unsigned char gConfig[CONFIG_LEN];
-extern int g_bHaveConfig;;
+extern int g_bHaveConfig;
+extern bool g_bHaveFWVer;
+extern int gFirmwareVer;
+extern CString gFirmwareVerString;
 extern int gLastModeSel;
 extern int gInvertedModeSel;
 extern double gVCORxSplitVHF;
