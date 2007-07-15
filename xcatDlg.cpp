@@ -1,6 +1,20 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.10  2007/07/15 14:25:53  Skip
+// 1. Added checks for firmware features against Xcat firmware version to
+//    CConfigure::OnSetConfig.
+// 2. Modified CXcatDlg::OnRxMsg to set new globals gFirmwareVer and
+//    gFirmwareVerString when a firmware version response is received.
+// 3. Added squelch pot support: slider in VFO view, configuration support on
+//    configuration page, initial slider position update from 3'rd byte of
+//    configuration data.
+// 4. Added firmware version requests to Debug and configuration pages.
+// 5. Modified SyncDebugData to display data properly for all versions of
+//    firmware.  Starting with V 0.27 there are a maximum of 7 bytes of sync
+//    data, previously there were 5.  Sync data is now displayed in order
+//    received rather than reverse byte order.
+//
 // Revision 1.9  2007/01/26 00:24:00  Skip
 // 1. Moved global ctable into ManualPage::ModeData(), ctable from syntorxdecode
 //    and syntorxgen aren't the same animal!
@@ -86,9 +100,9 @@
 #define CONFIG_440      4
 #define CONFIG_420      5
 
-#define CONFIG_CTRL_MASK 0x3
-#define CONFIG_GENERIC  0x1
-#define CONFIG_CACTUS   0x2
+#define CONFIG_CTRL_MASK 	0x30
+#define CONFIG_GENERIC  	0x10
+#define CONFIG_CACTUS   	0x20
 
 #define SYNTOR_SCAN_TYPE_MASK    0xc0
 #define SYNTOR_SCAN_TYPE_DOUBLE  0x00
@@ -247,6 +261,7 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 				TRACE("Got Mode data\n");
             memcpy(gModeData,&pMsg->Data[1],sizeof(gModeData));
 				g_bHaveModeData = TRUE;
+
             if(g_bHaveConfig && GetActivePage() == &ManualPage) {
 					ManualPage.ModeData();
 				}
@@ -294,11 +309,14 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 
          case 0x82:  // get firmware version number response 
          {  pMsg->Data[p->DataLen - sizeof(CI_V_Hdr)-1] = 0;
-            CString Version;
-
-            Version.Format("Firmware version: %s",(char *) &pMsg->Data[1]);
-            CAbout.m_bHaveFWVer = TRUE;
-            CAbout.GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(Version);
+            gFirmwareVerString.Format("Firmware version: %s",(char *) &pMsg->Data[1]);
+			// format "V x.xx"
+				gFirmwareVer = atoi((char *) &pMsg->Data[5]);
+				gFirmwareVer += 100 * atoi((char *) &pMsg->Data[3]);
+				g_bHaveFWVer = TRUE;
+            if(GetActivePage() == &CAbout) {
+               CAbout.GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(gFirmwareVerString);
+            }
             break;
          }
 
@@ -306,6 +324,8 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
          {
             memcpy(gConfig,&pMsg->Data[1],CONFIG_LEN);
 				g_bHaveConfig = TRUE;
+				ManualPage.UpdateSquelchPot();
+
             if(GetActivePage() == &Configure) {
 					Configure.ConfigMsgRx(&pMsg->Data[1]);
 				}
@@ -405,6 +425,7 @@ void ManualPage::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(ManualPage)
+	DDX_Control(pDX, IDC_SQUELCH, mSquelchPot);
 	DDX_Control(pDX, IDC_TX_TIMEOUT, mTxTimeout);
    DDX_Control(pDX, IDC_TX_OFFSET, mTxOffset);
    DDX_Control(pDX, IDC_TX_PL, mTxPL);
@@ -427,6 +448,7 @@ BEGIN_MESSAGE_MAP(ManualPage, CPropertyPage)
 	ON_CBN_SELCHANGE(IDC_RX_PL, OnSelchangeRxPl)
 	ON_CBN_SELCHANGE(IDC_TX_PL, OnSelchangeTxPl)
 	ON_CBN_SELCHANGE(IDC_TX_OFFSET, OnSelchangeTxOffset)
+	ON_WM_VSCROLL()
 	//}}AFX_MSG_MAP
    ON_BN_CLICKED(ID_MANUAL_SET,OnManualSet)
    ON_BN_CLICKED(ID_SAVE_MODE,OnSaveMode)
@@ -717,6 +739,8 @@ BOOL ManualPage::OnInitDialog()
    mTxOffset.SetCurSel(gTxOffset);
    mRxFrequency = gRxFrequency;
    mTxOffsetFreq = gTxOffsetFreq;
+
+   mSquelchPot.SetRange(0,0xff);
    UpdateData(FALSE);
    
    return TRUE;  // return TRUE unless you set the focus to a control
@@ -732,8 +756,11 @@ BOOL ManualPage::OnSetActive()
    
    mForcedSet = TRUE;
 
-	if(g_bHaveConfig && g_bHaveModeData) {
-		ModeData();
+	if(g_bHaveConfig) {
+		UpdateSquelchPot();
+		if(g_bHaveModeData) {
+			ModeData();
+		}
 	}
 
    return CPropertyPage::OnSetActive();
@@ -1199,6 +1226,34 @@ void ManualPage::OnSelchangeTxOffset()
 	int TxOffset = mTxOffset.GetCurSel();
 	
    EnableItems(this,TxResourseIDs,TxOffset != 3);
+}
+
+void ManualPage::UpdateSquelchPot()
+{
+   CWnd *pCWnd = GetDlgItem(IDC_SQUELCH_LABEL);
+
+	int nCmdShow;
+	nCmdShow = (gConfig[1] & CONFIG_SQU_POT_MASK) == 0 ? 
+						SW_SHOWNORMAL : SW_HIDE;
+
+	if((gConfig[1] & CONFIG_SQU_POT_MASK) == 0) {
+		nCmdShow = SW_SHOWNORMAL;
+		mSquelchPot.SetPos(gConfig[2]);
+	}
+	else {
+		nCmdShow = SW_HIDE;
+	}
+	mSquelchPot.ShowWindow(nCmdShow);
+	pCWnd->ShowWindow(nCmdShow);
+
+}
+
+void ManualPage::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+{
+	gConfig[2] = (unsigned char) mSquelchPot.GetPos();
+	TRACE2("0x%x/0x%x\n",nSBCode,gConfig[2]);
+	CComm.SetSquelchLevel(gConfig[2]);
+	CPropertyPage::OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2095,9 +2150,6 @@ IMPLEMENT_DYNCREATE(CAbout, CPropertyPage)
 
 CAbout::CAbout() : CPropertyPage(CAbout::IDD)
 {
-   m_bHaveFWVer = FALSE;
-   //{{AFX_DATA_INIT(CAbout)
-   //}}AFX_DATA_INIT
 }
 
 CAbout::~CAbout()
@@ -2124,10 +2176,13 @@ END_MESSAGE_MAP()
 
 BOOL CAbout::OnSetActive() 
 {
-   if(!m_bHaveFWVer)
+   if(!g_bHaveFWVer)
    {
       CComm.RequestFWVer();
    }
+	else {
+		GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(gFirmwareVerString);
+	}
 
    SetButtonMode(IDOK,0,NULL,FALSE,TRUE);
    SetButtonMode(IDCANCEL,0,NULL,FALSE,TRUE);
@@ -2176,6 +2231,11 @@ END_MESSAGE_MAP()
 
 BOOL CDebugMsgs::OnSetActive() 
 {
+   if(!g_bHaveFWVer)
+   {
+      CComm.RequestFWVer();
+   }
+
    SetButtonMode(IDOK,ID_GET_CODEPLUG_DATA,"Code Plug",TRUE,FALSE);
    SetButtonMode(IDCANCEL,ID_GET_SYNC_DEBUG,"Sync Data",TRUE,FALSE);
    SetButtonMode(ID_APPLY_NOW,ID_GET_SIG_REPORT,"Sig report",FALSE,TRUE);
@@ -2231,36 +2291,49 @@ void CDebugMsgs::SyncDebugData(unsigned char *Data)
    CString Text;
 	CString Temp;
 	int Bytes;
+	int Bits;
+	int OffNumBits;
+                  
+	if(gFirmwareVer < 27) {
+	// before version 0.27 there were only 5 bytes of serial data
+		OffNumBits = 5;
+	}
+	else {
+	// after version 0.27 there were are 7 bytes of serial data
+		OffNumBits = 7;
+	}
 
-	Bytes = Data[5]/8;
-	if((Data[5] % 8) != 0) {
+	Bits = Data[OffNumBits];
+	Bytes = Bits/8;
+
+	if((Bits % 8) != 0) {
 		Bytes++;
 	}
 
-	Text.Format("Received %d bits (%d bytes):\r\n",Data[5],Bytes);
-	if(Bytes > 5) {
-		Bytes = 5;
+	Text.Format("Received %d bits (%d bytes):\r\n",Bits,Bytes);
+	if(Bytes > 7) {
+		Bytes = 7;
 	}
-   for(int i = 0; i < Bytes; i++) {
+   for(int i = Bytes-1; i >= 0; i--) {
       Temp.Format("%02X ",Data[i]);
 		Text += Temp;
    }
-	Temp.Format("\r\nTotal frames %d\r\n",Data[6]);
+	Temp.Format("\r\nTotal frames %d\r\n",Data[OffNumBits+1]);
 	Text += Temp;
 	
-	Temp.Format("Invalid frames %d\r\n",Data[10]);
+	Temp.Format("Invalid frames %d\r\n",Data[OffNumBits+5]);
 	Text += Temp;
 	
-	Temp.Format("Frames that successfully set rx frequency %d\r\n",Data[8]);
+	Temp.Format("Frames that successfully set rx frequency %d\r\n",Data[OffNumBits+3]);
 	Text += Temp;
 
-	Temp.Format("Frames that successfully set tx frequency %d\r\n",Data[9]);
+	Temp.Format("Frames that successfully set tx frequency %d\r\n",Data[OffNumBits+4]);
 	Text += Temp;
 
-	Temp.Format("Serial input is disabled after %d bits\r\n",Data[7]);
+	Temp.Format("Serial input is disabled after %d bits\r\n",Data[OffNumBits+2]);
 	Text += Temp;
    
-	Temp.Format("Serial frame size %d bits\r\n",Data[11]);
+	Temp.Format("Serial frame size %d bits\r\n",Data[OffNumBits+6]);
 	Text += Temp;
 	mEdit.SetWindowText(Text);
 }
@@ -2289,7 +2362,8 @@ CConfigure::CConfigure() : CPropertyPage(CConfigure::IDD)
    mRxVcoSplitFreq = 215.6;
    mSendCosMsg = FALSE;
    mTxVcoSplitFreq = 161.8;
-   //}}AFX_DATA_INIT
+	mUFasSquelch = FALSE;
+	//}}AFX_DATA_INIT
 
    mFp = NULL;
 }
@@ -2302,6 +2376,10 @@ void CConfigure::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(CConfigure)
+	DDX_Control(pDX, IDC_OUT_7, mOut7);
+	DDX_Control(pDX, IDC_OUT_6, mOut6);
+	DDX_Control(pDX, IDC_OUT_4, mOut4);
+	DDX_Control(pDX, IDC_OUT_3, mOut3);
    DDX_Control(pDX, IDC_TRANSFER_STATUS, mTransferStatus);
    DDX_Control(pDX, IDC_OUT_5, mOut5);
    DDX_Control(pDX, IDC_OUT_2, mOut2);
@@ -2314,6 +2392,7 @@ void CConfigure::DoDataExchange(CDataExchange* pDX)
    DDX_Check(pDX, IDC_SEND_COS, mSendCosMsg);
    DDX_Text(pDX, IDC_TX_VCO_SPLIT_F, mTxVcoSplitFreq);
 	DDV_MinMaxDouble(pDX, mTxVcoSplitFreq, 100., 500.);
+	DDX_Check(pDX, IDC_UF_AS_SQUELCH, mUFasSquelch);
 	//}}AFX_DATA_MAP
 }
 
@@ -2323,6 +2402,10 @@ BEGIN_MESSAGE_MAP(CConfigure, CPropertyPage)
    ON_BN_CLICKED(IDC_RANGE1, OnRange1)
    ON_BN_CLICKED(IDC_RANGE2, OnRange2)
    ON_CBN_SELCHANGE(IDC_BAND, OnSelchangeBand)
+	ON_CBN_SELCHANGE(IDC_OUT_3, OnSelchangeOut3)
+	ON_CBN_SELCHANGE(IDC_OUT_4, OnSelchangeOut4)
+	ON_CBN_SELCHANGE(IDC_OUT_6, OnSelchangeOut6)
+	ON_CBN_SELCHANGE(IDC_CONTROL_SYS, OnSelchangeControlSys)
 	//}}AFX_MSG_MAP
    ON_BN_CLICKED(ID_GET_CONFIG,OnGetConfig)
    ON_BN_CLICKED(ID_SET_CONFIG,OnSetConfig)
@@ -2345,6 +2428,13 @@ void CConfigure::InitButtons()
 BOOL CConfigure::OnSetActive() 
 {
    InitButtons();
+	if(g_bHaveConfig) {
+		ConfigMsgRx((unsigned char *) &gConfig);
+	}
+   if(!g_bHaveFWVer)
+   {
+      CComm.RequestFWVer();
+   }
    return CPropertyPage::OnSetActive();
 }
 
@@ -2393,6 +2483,7 @@ void CConfigure::SaveSplits()
 
 void CConfigure::OnSetConfig()
 {
+	int bSetConfig = TRUE;
    UpdateData(TRUE);
 
 	int CurrentConfig = GetSelectedConfig();
@@ -2404,6 +2495,12 @@ void CConfigure::OnSetConfig()
 
       case 1:  // Doug Hall
          gConfig[0] |= 0x10;
+			if(mUFasSquelch) { 
+				gConfig[0] |= 0x80;
+			}
+			else {
+				gConfig[0] &= ~0x80;
+			}
          break;
 
       case 2:  // Palomar Telecom / Cactus / Remote base #1
@@ -2441,19 +2538,74 @@ void CConfigure::OnSetConfig()
       gConfig[1] &= ~4;
    }
 
+   if(!mOut3.GetCurSel()) {
+      gConfig[1] &= ~8;
+   }
+
+   if(!mOut4.GetCurSel()) {
+      gConfig[1] &= ~0x10;
+   }
+
    if(!mOut5.GetCurSel()) {
       gConfig[1] &= ~0x20;
    }
 
-   unsigned char ConfigBytes[2];
+   if(!mOut6.GetCurSel()) {
+      gConfig[1] &= ~0x40;
+   }
 
-   ConfigBytes[0] = (unsigned char) gConfig[0];
-   ConfigBytes[1] = (unsigned char) gConfig[1];
+   if(!mOut7.GetCurSel()) {
+      gConfig[1] &= ~0x80;
+   }
 
-   CComm.SetConfig(&ConfigBytes[0]);
-   CComm.SetVCOSplits((unsigned int) (mRxVcoSplitFreq * 1e6),
-                      (unsigned int) (mTxVcoSplitFreq * 1e6));
-	SaveSplits();
+
+	if(CurrentConfig == CONFIG_420) {
+		CString ErrMsg;
+		ErrMsg.Format("Warning: This firmware does not support\n"
+						  "UHF range 1 (406 to 420 Mhz).\n"
+						  "Please contact wb6ymh@cox.net for\n"
+						  "UHF range 1 firmware.");
+		AfxMessageBox(ErrMsg,MB_ICONEXCLAMATION);
+		bSetConfig = FALSE;
+	}
+
+	if(g_bHaveFWVer) {
+	// Check features against firmware capabilities
+		if((gConfig[1] & CONFIG_SQU_POT_MASK) == 0 && gFirmwareVer < 27) {
+		// Squelch pot support was added in version 0.27
+			CString ErrMsg;
+			ErrMsg.Format("Warning: Squelch pot support requires\n"
+							  "Xcat firmware V 0.27 or better.\n"
+							  "This Xcat has %s\n",gFirmwareVerString);
+			AfxMessageBox(ErrMsg,MB_ICONEXCLAMATION);
+			bSetConfig = FALSE;
+		}
+
+		if((gConfig[0] & CONFIG_CTRL_MASK) == CONFIG_CACTUS) {
+			CString ErrMsg;
+			if(gFirmwareVer >= 27) {
+				ErrMsg.Format("Warning: Palomar Telcom support was dropped\n"
+								  "in Xcat firmware V 0.27.  Please\n"
+								  "contact wb6ymh@cox.net for Xcat firmware\n"
+								  "that supports the Palomar control system.");
+				bSetConfig = FALSE;
+			}
+			else {
+				ErrMsg.Format("Warning: Palomar Telcom support is incomplete.\n"
+								  "Please contact wb6ymh@cox.net for more\n"
+								  "information.");
+			}
+			AfxMessageBox(ErrMsg,MB_ICONEXCLAMATION);
+		}
+	}
+
+
+	if(bSetConfig) {
+		CComm.SetConfig(&gConfig[0]);
+		CComm.SetVCOSplits((unsigned int) (mRxVcoSplitFreq * 1e6),
+								 (unsigned int) (mTxVcoSplitFreq * 1e6));
+		SaveSplits();
+	}
 }
 
 
@@ -2484,6 +2636,7 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
    int ControlSystemSel = 0;
 
    switch(Config[0] >> 4) {
+      case 9:  // Doug Hall w/ UF for squelch
       case 1:  // Doug Hall
          ControlSystemSel = 1;
          break;
@@ -2509,9 +2662,14 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
    mOut0.SetCurSel((Config[1] & 0x1) ? 1 : 0);
    mOut1.SetCurSel((Config[1] & 0x2) ? 1 : 0);
    mOut2.SetCurSel((Config[1] & 0x4) ? 1 : 0);
+   mOut3.SetCurSel((Config[1] & 0x8) ? 1 : 0);
+   mOut4.SetCurSel((Config[1] & 0x10) ? 1 : 0);
    mOut5.SetCurSel((Config[1] & 0x20) ? 1 : 0);
+   mOut6.SetCurSel((Config[1] & 0x40) ? 1 : 0);
+   mOut7.SetCurSel((Config[1] & 0x80) ? 1 : 0);
 
    EnableSplitItems();
+	UpdateUFasSquelch();
 
    UpdateData(FALSE);
 }
@@ -2800,6 +2958,45 @@ void CConfigure::SendModeData()
          CComm.GetModeData();
       }
    }
+}
+
+void CConfigure::OnSelchangeOut3_4_6(int NewSelection) 
+{
+	mOut3.SetCurSel(NewSelection);
+	mOut4.SetCurSel(NewSelection);
+	mOut6.SetCurSel(NewSelection);
+   UpdateData(FALSE);
+}
+
+void CConfigure::OnSelchangeOut3() 
+{
+   UpdateData(TRUE);
+	OnSelchangeOut3_4_6(mOut3.GetCurSel());
+}
+
+void CConfigure::OnSelchangeOut4() 
+{
+   UpdateData(TRUE);
+	OnSelchangeOut3_4_6(mOut4.GetCurSel());
+}
+
+void CConfigure::OnSelchangeOut6() 
+{
+   UpdateData(TRUE);
+	OnSelchangeOut3_4_6(mOut6.GetCurSel());
+}
+
+void CConfigure::UpdateUFasSquelch() 
+{
+	CButton *pRB = (CButton *) GetDlgItem(IDC_UF_AS_SQUELCH);
+	ASSERT_VALID(pRB);
+// Gray out "Use UF outputs for squelch" for everything other than doug hall Mode
+	pRB->EnableWindow(mControlSys.GetCurSel() == 1);
+}
+
+void CConfigure::OnSelchangeControlSys() 
+{
+	UpdateUFasSquelch();
 }
 
 BOOL CAbout::OnInitDialog() 
