@@ -1,4 +1,7 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.7  2007/07/15 14:26:21  Skip
+// Added squelch pot support.
+//
 // Revision 1.6  2007/01/02 17:28:56  Skip
 // 1. Added support for DPL (DCS) encoding and decoding to the VFO page.
 // 2. Added a DPL scan option to Scan page.
@@ -67,7 +70,11 @@ public:
 
 // Dialog Data
    //{{AFX_DATA(CConfigure)
-   enum { IDD = IDD_CONFIGURE };
+	enum { IDD = IDD_CONFIGURE };
+	CComboBox	mOut7;
+	CComboBox	mOut6;
+	CComboBox	mOut4;
+	CComboBox	mOut3;
    CStatic  mTransferStatus;
    CComboBox   mOut5;
    CComboBox   mOut2;
@@ -78,7 +85,8 @@ public:
    double   mRxVcoSplitFreq;
    BOOL  mSendCosMsg;
    double   mTxVcoSplitFreq;
-   //}}AFX_DATA
+	BOOL	mUFasSquelch;
+	//}}AFX_DATA
 
    int mMode;
    FILE *mFp;
@@ -101,6 +109,10 @@ protected:
    afx_msg void OnRange1();
    afx_msg void OnRange2();
    afx_msg void OnSelchangeBand();
+	afx_msg void OnSelchangeOut3();
+	afx_msg void OnSelchangeOut4();
+	afx_msg void OnSelchangeOut6();
+	afx_msg void OnSelchangeControlSys();
 	//}}AFX_MSG
    DECLARE_MESSAGE_MAP()
 
@@ -113,6 +125,8 @@ protected:
    void SendModeData();
 	int  GetSelectedConfig();
 	void SaveSplits();
+	void OnSelchangeOut3_4_6(int NewSelection);
+	void UpdateUFasSquelch();
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -128,10 +142,12 @@ public:
    ~ManualPage();
 
 	void ModeData();
+	void UpdateSquelchPot();
 
 // Dialog Data
    //{{AFX_DATA(ManualPage)
 	enum { IDD = IDD_VFO };
+	CSliderCtrl	mSquelchPot;
 	CComboBox	mTxTimeout;
    CComboBox   mTxOffset;
    CComboBox   mTxPL;
@@ -173,6 +189,7 @@ protected:
 	afx_msg void OnSelchangeRxPl();
 	afx_msg void OnSelchangeTxPl();
 	afx_msg void OnSelchangeTxOffset();
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	//}}AFX_MSG
 
    float mLastEncodePL;
@@ -184,6 +201,7 @@ protected:
    void OnRecallMode();
 	void UpdateRxCB();
 	void UpdateTxCB();
+
    DECLARE_MESSAGE_MAP()
 };
 
@@ -426,8 +444,6 @@ public:
    enum { IDD = IDD_ABOUTBOX };
    CStatic  mCompiled;
    //}}AFX_DATA
-
-   bool m_bHaveFWVer;
 
 // Overrides
    // ClassWizard generate virtual function overrides
