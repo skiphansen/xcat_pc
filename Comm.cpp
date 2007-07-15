@@ -1,4 +1,7 @@
 // $Log: Comm.cpp,v $
+// Revision 1.9  2007/07/15 14:14:23  Skip
+// Added squelch pot support.
+//
 // Revision 1.8  2007/07/06 13:43:59  Skip
 // 1. Changed MAX_RETRIES from 5 to 3.
 // 2. Changed response timeout from 2 seconds to .5 seconds.
@@ -61,6 +64,10 @@ Comm CComm;
 #define MAX_RETRIES  3
 int tracecounter = 0;
 
+int g_bSettingSquelch = FALSE;
+int gSquelchLevel = 0;
+int gPendingSquelchLevel = 0;
+
 static char *XcatCmdLookup[] = {
 	"get vfo raw data",					// 0x00
 	"set raw vfo data",					// 0x01
@@ -73,6 +80,7 @@ static char *XcatCmdLookup[] = {
 	"set VCO split frequencies",		// 0x08
 	"get sync data debug info",		// 0x09
 	"Set communications parameters",	// 0x0a
+	"Set Squelch Level",					// 0x0b
 };
 
 static char *XcatResponseLookup[] = {
@@ -87,6 +95,7 @@ static char *XcatResponseLookup[] = {
 	"0x88",
 	"get sync data debug response",	// 0x89
 	"Set communications parameters ACK",	// 0x8a
+	"0x8b",
 };
 
 
@@ -382,10 +391,10 @@ void Comm::SendNextMessage(bool bRetry)
          TRACE3("sending %d byte message 0x%x, 0x%x\n",j,Temp[4],Temp[5]);
 			if(pMsg->Hdr.Cmd == ICOM_CMD_XCAT) {
 				BYTE XcatCmd = pMsg->Data[0];
-				if(XcatCmd < 0xb) {
+				if(XcatCmd < 0xc) {
 					LOG(("sending %s:\n",XcatCmdLookup[XcatCmd]));
 				}
-				else if(XcatCmd > 0x7f && XcatCmd < 0x8b) {
+				else if(XcatCmd > 0x7f && XcatCmd < 0x8c) {
 					LOG(("sending %s:\n",XcatResponseLookup[XcatCmd-0x80]));
 				}
 				else {
@@ -528,8 +537,15 @@ void Comm::DeleteTxMsg()
    if(pMsg != NULL) {
       mTxHead = pMsg->Link;
       mTxQueueLock.Unlock();
+		if(pMsg->Hdr.Cmd == 0xaa && pMsg->Data[0] == 0xb) {
+		// Set squelch level message sent
+			g_bSettingSquelch = FALSE;
+			if(gSquelchLevel != gPendingSquelchLevel) {
+            SetSquelchLevel(gPendingSquelchLevel);
+			}
+		}
       delete pMsg;
-      if(mTxHead != NULL) {
+      if(mTxHead != NULL && mTxState == TX_IDLE) {
          SendNextMessage(FALSE);
       }
    }
@@ -983,8 +999,9 @@ void Comm::SetConfig(unsigned char *Config)
       pMsg->Data[0] = 4;
       pMsg->Data[1] = Config[0];
       pMsg->Data[2] = Config[1];
-      pMsg->Data[3] = 0xfd;
-      pMsg->DataLen = sizeof(CI_V_Hdr) + 4;
+      pMsg->Data[3] = Config[2];
+      pMsg->Data[4] = 0xfd;
+      pMsg->DataLen = sizeof(CI_V_Hdr) + 5;
       SendMessage(pMsg);
    }
 }
@@ -1119,4 +1136,34 @@ void Comm::SetCommParameters(int Baudrate,int Adr)
       SendMessage(pMsg);
    }
 }
+
+// Set squelch level messages are sent by dragging the squelch pot control
+// so we need to make sure we don't send a flood of squelch level message.
+// Wait for the last one to be acked before sending another
+void Comm::SetSquelchLevel(int SquelchLevel)
+{
+	if(!g_bSettingSquelch) {
+	// No Squelch set message active
+		g_bSettingSquelch = TRUE;
+		gSquelchLevel = SquelchLevel;
+		gPendingSquelchLevel = SquelchLevel;
+		
+		AppMsg *pMsg = new AppMsg;
+
+		if(pMsg != NULL) {
+			memset(pMsg,0,sizeof(AppMsg));
+			InitMsgHeader(&pMsg->Hdr,gXcatAdr,0xaa);
+			int i = 0;
+			pMsg->Data[i++] = 0xb;
+			pMsg->Data[i++] = (BYTE) SquelchLevel;
+			pMsg->Data[i++] = 0xfd;
+			pMsg->DataLen = sizeof(CI_V_Hdr) + i;
+			SendMessage(pMsg);
+		}
+	}
+	else {
+		gPendingSquelchLevel = SquelchLevel;
+	}
+}
+
 

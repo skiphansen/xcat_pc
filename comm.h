@@ -1,4 +1,7 @@
 // $Log: comm.h,v $
+// Revision 1.8  2007/07/15 14:14:28  Skip
+// Added squelch pot support.
+//
 // Revision 1.7  2007/01/26 00:29:18  Skip
 // Added defines for ICOM_CMD_SET_FREQ and ICOM_CMD_XCAT.
 //
@@ -113,6 +116,8 @@ public:
    void GetSigReport();
 	void GetSyncData();
 	void SetCommParameters(int Baudrate,int Adr);
+	void SetSquelchLevel(int SquelchLevel);
+
 	bool CommunicationsUp() { return m_bReportErrors; }
 public:
    // Attributes

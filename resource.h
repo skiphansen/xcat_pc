@@ -66,7 +66,11 @@
 #define IDC_OUT_2                       1017
 #define IDC_FIRMWARE_VER                1018
 #define IDC_OUT_5                       1018
+#define IDC_OUT_3                       1019
 #define IDC_PL_SCAN                     1020
+#define IDC_OUT_6                       1020
+#define IDC_OUT_4                       1021
+#define IDC_OUT_7                       1022
 #define IDC_SEND_COS                    1024
 #define IDC_BAND                        1025
 #define IDC_RANGE1                      1028
@@ -100,9 +104,12 @@
 #define IDC_SCAN_MODE28                 1050
 #define IDC_CHECK12                     1051
 #define IDC_SCAN_MODE15                 1051
+#define IDC_UF_AS_SQUELCH               1051
 #define IDC_CHECK13                     1052
 #define IDC_SCAN_MODE16                 1052
+#define IDC_SQUELCH                     1052
 #define IDC_SCAN_MODE7                  1053
+#define IDC_SQUELCH_LABEL               1053
 #define IDC_SCAN_MODE8                  1054
 #define IDC_SCAN_MODE9                  1055
 #define IDC_CHECK14                     1056
@@ -139,7 +146,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1054
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif
