@@ -1,8 +1,11 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.6  2007/07/15 14:15:48  Skip
+// Added gFirmwareVer, gFirmwareVerString and g_bHaveFWVer.
+//
 // Revision 1.5  2007/01/02 17:28:24  Skip
-// AAdded registry backed globals gVCORxSplitVHF, gVCOTxSplitVHF, gVCORxSplit420,
+// Added registry backed globals gVCORxSplitVHF, gVCOTxSplitVHF, gVCORxSplit420,
 // gVCOTxSplit420, gVCORxSplit440, and gVCOTxSplit440.
 //
 // Added globals gRxDCS, gTxDCS, and gTxTimeout.
@@ -109,6 +112,10 @@ int g_bHaveModeData = FALSE;
 
 unsigned char gConfig[CONFIG_LEN];
 int g_bHaveConfig = FALSE;
+int gFirmwareVer = 0;
+CString gFirmwareVerString;
+
+bool g_bHaveFWVer = FALSE;
 
 RegVariable RegVars[] = {
    {"ComPort",&gComPort,REG_VAR_TYPE_INT,"1"},
