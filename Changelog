@@ -1,4 +1,15 @@
 ####################################
+Changes in version 0.20 7/15/2007
+1. Added support for digital squelch pot connected to user function outputs.
+2. Modified code to allow the PC baudrate to be changed even if communications
+   with the Xcat fails.  Previously the PC baudrate was only changed after
+   an ACK was received from the Xcat for the new baudrate, this made it
+   very difficult to sync baudrates under certain conditions.
+3. Added checks for firmware features against Xcat firmware version when
+   setting a new configuration.  Configurations that select feature that
+   are not supported by a particular firmware release are not longer allowed.
+
+####################################
 Changes in version 0.19 2/9/2007
 
 Removed some left over debug code from 0.18 and bumped version number
