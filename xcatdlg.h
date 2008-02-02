@@ -1,4 +1,7 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.8  2008/02/02 17:58:22  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.7  2007/07/15 14:26:21  Skip
 // Added squelch pot support.
 //
@@ -86,6 +89,7 @@ public:
    BOOL  mSendCosMsg;
    double   mTxVcoSplitFreq;
 	BOOL	mUFasSquelch;
+	BOOL	mEnableVolumePot;
 	//}}AFX_DATA
 
    int mMode;
@@ -127,6 +131,7 @@ protected:
 	void SaveSplits();
 	void OnSelchangeOut3_4_6(int NewSelection);
 	void UpdateUFasSquelch();
+	void UpdateEnableVolumePot();
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -142,11 +147,12 @@ public:
    ~ManualPage();
 
 	void ModeData();
-	void UpdateSquelchPot();
+	void UpdatePots();
 
 // Dialog Data
    //{{AFX_DATA(ManualPage)
 	enum { IDD = IDD_VFO };
+	CSliderCtrl	mVolumePot;
 	CSliderCtrl	mSquelchPot;
 	CComboBox	mTxTimeout;
    CComboBox   mTxOffset;

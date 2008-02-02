@@ -1,6 +1,9 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.11  2008/02/02 17:58:22  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.10  2007/07/15 14:25:53  Skip
 // 1. Added checks for firmware features against Xcat firmware version to
 //    CConfigure::OnSetConfig.
@@ -237,8 +240,8 @@ BOOL CXcatDlg::OnInitDialog()
                                     "Minimize" );
    SetIcon(AfxGetApp()->LoadIcon(IDR_MAINFRAME),TRUE);
 
-   // Start a 200 millisecond timer
-   if(!SetTimer(1,200,NULL)) {
+   // Start a 500 millisecond timer
+   if(!SetTimer(1,500,NULL)) {
       AfxMessageBox("Fatal error: Unable to create timer.");
       PostMessage(WM_QUIT,0,0);
    }
@@ -324,7 +327,7 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
          {
             memcpy(gConfig,&pMsg->Data[1],CONFIG_LEN);
 				g_bHaveConfig = TRUE;
-				ManualPage.UpdateSquelchPot();
+				ManualPage.UpdatePots();
 
             if(GetActivePage() == &Configure) {
 					Configure.ConfigMsgRx(&pMsg->Data[1]);
@@ -425,6 +428,7 @@ void ManualPage::DoDataExchange(CDataExchange* pDX)
 {
    CPropertyPage::DoDataExchange(pDX);
    //{{AFX_DATA_MAP(ManualPage)
+	DDX_Control(pDX, IDC_VOLUME, mVolumePot);
 	DDX_Control(pDX, IDC_SQUELCH, mSquelchPot);
 	DDX_Control(pDX, IDC_TX_TIMEOUT, mTxTimeout);
    DDX_Control(pDX, IDC_TX_OFFSET, mTxOffset);
@@ -757,7 +761,7 @@ BOOL ManualPage::OnSetActive()
    mForcedSet = TRUE;
 
 	if(g_bHaveConfig) {
-		UpdateSquelchPot();
+		UpdatePots();
 		if(g_bHaveModeData) {
 			ModeData();
 		}
@@ -1228,7 +1232,7 @@ void ManualPage::OnSelchangeTxOffset()
    EnableItems(this,TxResourseIDs,TxOffset != 3);
 }
 
-void ManualPage::UpdateSquelchPot()
+void ManualPage::UpdatePots()
 {
    CWnd *pCWnd = GetDlgItem(IDC_SQUELCH_LABEL);
 
@@ -1246,13 +1250,30 @@ void ManualPage::UpdateSquelchPot()
 	mSquelchPot.ShowWindow(nCmdShow);
 	pCWnd->ShowWindow(nCmdShow);
 
+	if(!gEnableVolumePot) {
+		nCmdShow = SW_HIDE;
+	}
+
+	mVolumePot.SetPos(gConfig[3]);
+	mVolumePot.ShowWindow(nCmdShow);
+   pCWnd = GetDlgItem(IDC_VOLUME_LABEL);
+	pCWnd->ShowWindow(nCmdShow);
 }
 
 void ManualPage::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-	gConfig[2] = (unsigned char) mSquelchPot.GetPos();
-	TRACE2("0x%x/0x%x\n",nSBCode,gConfig[2]);
-	CComm.SetSquelchLevel(gConfig[2]);
+	int ID = pScrollBar->GetDlgCtrlID();
+
+	if(ID == IDC_VOLUME) {
+		gConfig[3] = (unsigned char) mVolumePot.GetPos();
+		TRACE2("0x%x/0x%x\n",nSBCode,gConfig[3]);
+		CComm.SetVolumeLevel(gConfig[3]);
+	}
+	else if(ID == IDC_SQUELCH) {
+		gConfig[2] = (unsigned char) mSquelchPot.GetPos();
+		TRACE2("0x%x/0x%x\n",nSBCode,gConfig[2]);
+		CComm.SetSquelchLevel(gConfig[2]);
+	}
 	CPropertyPage::OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
@@ -2363,6 +2384,7 @@ CConfigure::CConfigure() : CPropertyPage(CConfigure::IDD)
    mSendCosMsg = FALSE;
    mTxVcoSplitFreq = 161.8;
 	mUFasSquelch = FALSE;
+	mEnableVolumePot = FALSE;
 	//}}AFX_DATA_INIT
 
    mFp = NULL;
@@ -2393,6 +2415,7 @@ void CConfigure::DoDataExchange(CDataExchange* pDX)
    DDX_Text(pDX, IDC_TX_VCO_SPLIT_F, mTxVcoSplitFreq);
 	DDV_MinMaxDouble(pDX, mTxVcoSplitFreq, 100., 500.);
 	DDX_Check(pDX, IDC_UF_AS_SQUELCH, mUFasSquelch);
+	DDX_Check(pDX, IDC_UF_HAS_VOLUME, mEnableVolumePot);
 	//}}AFX_DATA_MAP
 }
 
@@ -2580,6 +2603,17 @@ void CConfigure::OnSetConfig()
 			AfxMessageBox(ErrMsg,MB_ICONEXCLAMATION);
 			bSetConfig = FALSE;
 		}
+		else if((gConfig[1] & CONFIG_SQU_POT_MASK) == 0 && mEnableVolumePot &&
+			gFirmwareVer < 28) 
+		{
+		// Volume pot support was added in version 0.28
+			CString ErrMsg;
+			ErrMsg.Format("Warning: Volume pot support requires\n"
+							  "Xcat firmware V 0.27 or better.\n"
+							  "This Xcat has %s\n",gFirmwareVerString);
+			AfxMessageBox(ErrMsg,MB_ICONEXCLAMATION);
+			bSetConfig = FALSE;
+		}
 
 		if((gConfig[0] & CONFIG_CTRL_MASK) == CONFIG_CACTUS) {
 			CString ErrMsg;
@@ -2605,6 +2639,7 @@ void CConfigure::OnSetConfig()
 		CComm.SetVCOSplits((unsigned int) (mRxVcoSplitFreq * 1e6),
 								 (unsigned int) (mTxVcoSplitFreq * 1e6));
 		SaveSplits();
+		gEnableVolumePot = mEnableVolumePot;
 	}
 }
 
@@ -2670,6 +2705,7 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
 
    EnableSplitItems();
 	UpdateUFasSquelch();
+	UpdateEnableVolumePot();
 
    UpdateData(FALSE);
 }
@@ -2960,11 +2996,22 @@ void CConfigure::SendModeData()
    }
 }
 
+void CConfigure::UpdateEnableVolumePot()
+{
+	CButton *pRB = (CButton *) GetDlgItem(IDC_UF_HAS_VOLUME);
+	ASSERT_VALID(pRB);
+
+// Gray out "Enable volume pot" unless pots are enabled and firmware is > 0.28
+	pRB->EnableWindow(mOut3.GetCurSel() == 0 /* && (!g_bHaveFWVer || gFirmwareVer >= 28*/);
+}
+
 void CConfigure::OnSelchangeOut3_4_6(int NewSelection) 
 {
 	mOut3.SetCurSel(NewSelection);
 	mOut4.SetCurSel(NewSelection);
 	mOut6.SetCurSel(NewSelection);
+	UpdateEnableVolumePot();
+
    UpdateData(FALSE);
 }
 

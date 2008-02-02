@@ -87,11 +87,12 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
     LTEXT           "Xcat PC Control Program",IDC_STATIC,61,10,119,8,
                     SS_NOPREFIX
-    LTEXT           "Copyright (C) 2004, 2005, 2006",IDC_STATIC,61,50,119,8
+    LTEXT           "Copyright (C) 2004, 2005, 2006, 2007",IDC_STATIC,61,50,
+                    119,8
     LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,40,119,8,
                     SS_NOPREFIX
     LTEXT           "Compiled: ",IDC_COMPILED,61,30,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.20",IDC_STATIC,61,20,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.22",IDC_STATIC,61,20,119,8,SS_NOPREFIX
     LTEXT           "WB6YMH",IDC_STATIC,61,60,119,8
 END
 
@@ -121,20 +122,24 @@ BEGIN
     COMBOBOX        IDC_TX_PL,91,90,69,85,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_TX_OFFSET_FREQ,91,115,58,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_TX_TIMEOUT,91,140,69,110,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Slider1",IDC_VOLUME,"msctls_trackbar32",TBS_VERT | 
+                    TBS_BOTH | TBS_NOTICKS | NOT WS_VISIBLE | WS_TABSTOP,174,
+                    62,15,80
+    CONTROL         "Slider1",IDC_SQUELCH,"msctls_trackbar32",TBS_VERT | 
+                    TBS_BOTH | TBS_NOTICKS | NOT WS_VISIBLE | WS_TABSTOP,204,
+                    62,15,80
     RTEXT           "Receive Frequency",IDC_STATIC,23,15,63,14,
                     SS_CENTERIMAGE
     RTEXT           "Transmit offset",IDC_TX_OFFSET_LABEL,23,115,63,14,
                     SS_CENTERIMAGE
     LTEXT           "Mhz",IDC_STATIC,151,15,14,14,SS_CENTERIMAGE
     LTEXT           "Mhz",IDC_STATIC,151,115,14,14,SS_CENTERIMAGE
-    COMBOBOX        IDC_TX_TIMEOUT,91,140,69,110,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
     RTEXT           "Tx timeout timer",IDC_TX_TIMEOUT_LABEL,36,140,50,12,
                     SS_CENTERIMAGE
-    CONTROL         "Slider1",IDC_SQUELCH,"msctls_trackbar32",TBS_VERT | 
-                    TBS_BOTH | TBS_NOTICKS | NOT WS_VISIBLE | WS_TABSTOP,193,
-                    62,15,80
-    LTEXT           "Squelch",IDC_SQUELCH_LABEL,189,144,27,8,NOT WS_VISIBLE
+    LTEXT           "Squelch",IDC_SQUELCH_LABEL,199,144,27,8,NOT WS_VISIBLE
+    LTEXT           "Volume",IDC_VOLUME_LABEL,170,144,24,8,NOT WS_VISIBLE
 END
 
 IDD_SCAN_ENABLE DIALOG DISCARDABLE  0, 0, 202, 151
@@ -317,6 +322,9 @@ BEGIN
     CONTROL         "Use UF output for Squelch Level",IDC_UF_AS_SQUELCH,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,30,185,119,10
     LTEXT           "",IDC_TRANSFER_STATUS,155,187,70,8
+    LTEXT           "Tx VCO Split ",IDC_STATIC,10,30,43,14,SS_CENTERIMAGE
+    CONTROL         "Enable Volume pot",IDC_UF_HAS_VOLUME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,144,172,75,10
 END
 
 IDD_DEBUG DIALOG DISCARDABLE  0, 0, 187, 138

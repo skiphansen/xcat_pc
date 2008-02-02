@@ -1,4 +1,7 @@
 // $Log: Comm.cpp,v $
+// Revision 1.10  2008/02/02 17:58:21  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.9  2007/07/15 14:14:23  Skip
 // Added squelch pot support.
 //
@@ -67,6 +70,10 @@ int tracecounter = 0;
 int g_bSettingSquelch = FALSE;
 int gSquelchLevel = 0;
 int gPendingSquelchLevel = 0;
+
+int g_bSettingVolume = FALSE;
+int gVolumeLevel = 0;
+int gPendingVolumeLevel = 0;
 
 static char *XcatCmdLookup[] = {
 	"get vfo raw data",					// 0x00
@@ -1165,5 +1172,35 @@ void Comm::SetSquelchLevel(int SquelchLevel)
 		gPendingSquelchLevel = SquelchLevel;
 	}
 }
+
+// Set volume level messages are sent by dragging the volume pot control
+// so we need to make sure we don't send a flood of volume level message.
+// Wait for the last one to be acked before sending another
+void Comm::SetVolumeLevel(int VolumeLevel)
+{
+	if(!g_bSettingVolume) {
+	// No Volume set message active
+		g_bSettingVolume = TRUE;
+		gVolumeLevel = VolumeLevel;
+		gPendingVolumeLevel = VolumeLevel;
+		
+		AppMsg *pMsg = new AppMsg;
+
+		if(pMsg != NULL) {
+			memset(pMsg,0,sizeof(AppMsg));
+			InitMsgHeader(&pMsg->Hdr,gXcatAdr,0xaa);
+			int i = 0;
+			pMsg->Data[i++] = 0xc;
+			pMsg->Data[i++] = (BYTE) VolumeLevel;
+			pMsg->Data[i++] = 0xfd;
+			pMsg->DataLen = sizeof(CI_V_Hdr) + i;
+			SendMessage(pMsg);
+		}
+	}
+	else {
+		gPendingVolumeLevel = VolumeLevel;
+	}
+}
+
 
 

@@ -108,10 +108,13 @@
 #define IDC_CHECK13                     1052
 #define IDC_SCAN_MODE16                 1052
 #define IDC_SQUELCH                     1052
+#define IDC_UF_HAS_VOLUME               1052
 #define IDC_SCAN_MODE7                  1053
 #define IDC_SQUELCH_LABEL               1053
 #define IDC_SCAN_MODE8                  1054
+#define IDC_VOLUME                      1054
 #define IDC_SCAN_MODE9                  1055
+#define IDC_VOLUME_LABEL                1055
 #define IDC_CHECK14                     1056
 #define IDC_SCAN_MODE23                 1056
 #define IDC_CHECK15                     1057

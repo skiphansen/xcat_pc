@@ -1,6 +1,9 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.8  2008/02/02 17:58:21  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.7  2007/07/15 14:17:24  Skip
 // 1. Added gFirmwareVer, gFirmwareVerString, CONFIG_SQU_POT_MASK
 //    and g_bHaveFWVer.
@@ -51,7 +54,7 @@
 
 #include "resource.h"      // main symbols
 
-#define	CONFIG_LEN	3
+#define	CONFIG_LEN	4
 
 #define CONFIG_SQU_POT_MASK	0x58
 
@@ -90,6 +93,7 @@ extern double gVCORxSplit420;
 extern double gVCOTxSplit420;
 extern double gVCORxSplit440;
 extern double gVCOTxSplit440;
+extern int gEnableVolumePot;
 
 // in x 0 -> 31, out x 31 -> 0
 #define INVERT_MODE(x)  (gInvertedModeSel ? (~(x) & 0x1f) : (x))

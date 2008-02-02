@@ -1,6 +1,9 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.7  2008/02/02 17:58:21  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.6  2007/07/15 14:15:48  Skip
 // Added gFirmwareVer, gFirmwareVerString and g_bHaveFWVer.
 //
@@ -106,6 +109,7 @@ double gVCORxSplit420;
 double gVCOTxSplit420;
 double gVCORxSplit440;
 double gVCOTxSplit440;
+int gEnableVolumePot;
 
 unsigned char gModeData[16];
 int g_bHaveModeData = FALSE;
@@ -172,6 +176,7 @@ RegVariable RegVars[] = {
    {"VCOTxSplit420",&gVCOTxSplit420,REG_VAR_TYPE_DOUBLE,"412.8"},
    {"VCORxSplit440",&gVCORxSplit440,REG_VAR_TYPE_DOUBLE,"405.6"},
    {"VCOTxSplit440",&gVCOTxSplit440,REG_VAR_TYPE_DOUBLE,"459.5"},
+   {"EnableVolumePot",&gEnableVolumePot,REG_VAR_TYPE_INT,"0"},
    {NULL}
 };
 

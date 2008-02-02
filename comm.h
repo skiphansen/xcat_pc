@@ -1,4 +1,7 @@
 // $Log: comm.h,v $
+// Revision 1.9  2008/02/02 17:58:21  Skip
+// Added support for volume pot (not tested).
+//
 // Revision 1.8  2007/07/15 14:14:28  Skip
 // Added squelch pot support.
 //
@@ -117,6 +120,7 @@ public:
 	void GetSyncData();
 	void SetCommParameters(int Baudrate,int Adr);
 	void SetSquelchLevel(int SquelchLevel);
+	void SetVolumeLevel(int VolumeLevel);
 
 	bool CommunicationsUp() { return m_bReportErrors; }
 public:
