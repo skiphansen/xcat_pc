@@ -1,4 +1,17 @@
 ####################################
+Changes in version 0.23 2/2/2008
+
+Bug fixes:
+1. Corrected display of out of band receive frequencies.
+
+####################################
+Changes in version 0.22 10/6/2007
+
+New features:
+1. Added support for digital volume pot in addition to digital squelch pot 
+   connected to user function outputs.
+
+####################################
 Changes in version 0.20 7/15/2007
 1. Added support for digital squelch pot connected to user function outputs.
 2. Modified code to allow the PC baudrate to be changed even if communications

@@ -1,6 +1,9 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.12  2008/02/03 15:53:36  Skip
+// Corrected display of out of band receive frequencies.
+//
 // Revision 1.11  2008/02/02 17:58:22  Skip
 // Added support for volume pot (not tested).
 //
@@ -1016,9 +1019,10 @@ void ManualPage::ModeData()
 		mTxOffset.SetCurSel(3);
 	}
 
+	mRxFrequency = (double) frx / 1000000.0;
+	gRxFrequency = mRxFrequency;
+
 	if(ftx != 0 && frx != 0) {
-		mRxFrequency = (double) frx / 1000000.0;
-		gRxFrequency = mRxFrequency;
 		TxOffsetFreq = (ftx - frx) / 1000000.0;
 
 		if(TxOffsetFreq < 0) {
