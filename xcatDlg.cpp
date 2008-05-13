@@ -1,6 +1,10 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.13  2008/05/13 15:43:51  Skip
+// Added support for the new debug variables in 0.29 (srxlen (Palomar
+// code debug var), wd_count, bo_count and unk_count.
+//
 // Revision 1.12  2008/02/03 15:53:36  Skip
 // Corrected display of out of band receive frequencies.
 //
@@ -2358,8 +2362,24 @@ void CDebugMsgs::SyncDebugData(unsigned char *Data)
 	Temp.Format("Serial input is disabled after %d bits\r\n",Data[OffNumBits+2]);
 	Text += Temp;
    
-	Temp.Format("Serial frame size %d bits\r\n",Data[OffNumBits+6]);
-	Text += Temp;
+	if(gFirmwareVer == 23 || gFirmwareVer > 28) {
+	// Palomar specific variable
+		Temp.Format("Serial frame size %d bits\r\n",Data[OffNumBits+6]);
+		Text += Temp;
+	}
+
+	if(gFirmwareVer > 28) {
+		Temp.Format("Watchdog resets: %d\r\n",Data[OffNumBits+7]);
+		Text += Temp;
+	
+		Temp.Format("Brownout resets: %d\r\n",Data[OffNumBits+8]);
+		Text += Temp;
+
+		Temp.Format("Unknown resets: %d\r\n",Data[OffNumBits+9]);
+		Text += Temp;
+
+	}
+
 	mEdit.SetWindowText(Text);
 }
 
