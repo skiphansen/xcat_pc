@@ -1,6 +1,9 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.9  2008/06/01 13:57:15  Skip
+// Added gLoaderVerString, ID_DOWNLOAD_CHAR.
+//
 // Revision 1.8  2008/02/02 17:58:21  Skip
 // Added support for volume pot (not tested).
 //
@@ -85,6 +88,7 @@ extern int g_bHaveConfig;
 extern bool g_bHaveFWVer;
 extern int gFirmwareVer;
 extern CString gFirmwareVerString;
+extern CString gLoaderVerString;
 extern int gLastModeSel;
 extern int gInvertedModeSel;
 extern double gVCORxSplitVHF;
@@ -159,7 +163,8 @@ enum XCAT_PRIVATE_IDS {
 	ID_SET_XCAT_ADR,
 	ID_GET_CODEPLUG_DATA,
 	ID_GET_SYNC_DEBUG,
-	ID_GET_SIG_REPORT
+	ID_GET_SIG_REPORT,
+	ID_DOWNLOAD_CHAR
 };
 
 extern HWND hMainWindow;
