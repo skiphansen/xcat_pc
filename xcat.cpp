@@ -1,6 +1,9 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.8  2008/06/01 13:56:13  Skip
+// Added gLoaderVerString.
+//
 // Revision 1.7  2008/02/02 17:58:21  Skip
 // Added support for volume pot (not tested).
 //
@@ -118,6 +121,7 @@ unsigned char gConfig[CONFIG_LEN];
 int g_bHaveConfig = FALSE;
 int gFirmwareVer = 0;
 CString gFirmwareVerString;
+CString gLoaderVerString;
 
 bool g_bHaveFWVer = FALSE;
 
