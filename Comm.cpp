@@ -1,4 +1,8 @@
 // $Log: Comm.cpp,v $
+// Revision 1.11  2008/06/01 13:55:04  Skip
+// 1. Beginnings of download hex support.
+// 2. Added code to log Nak'ed commands.
+//
 // Revision 1.10  2008/02/02 17:58:21  Skip
 // Added support for volume pot (not tested).
 //
@@ -167,7 +171,7 @@ Comm::~Comm()
    }
 }
 
-BOOL Comm::Init(int ComPort, int Baudrate)
+BOOL Comm::Init(int ComPort, int Baudrate,bool bDownloadMode)
 {
    // init variables
 
@@ -195,6 +199,17 @@ BOOL Comm::Init(int ComPort, int Baudrate)
          ASSERT(FALSE);
       mComDev = INVALID_HANDLE_VALUE;
    }
+
+	m_bDownloadMode = bDownloadMode;
+   mTxTimeout.time = 0;
+	mTxState = TX_IDLE;
+
+// Free any pending TxMessages
+	while(mTxHead != NULL) {
+		AppMsg *pMsg = mTxHead;
+		mTxHead = pMsg->Link;
+		delete pMsg;
+	}
 
    if(ComPort == -1) {
       ComPort = theApp.GetProfileInt("Settings","Port",-1);
@@ -510,7 +525,12 @@ void Comm::IOThreadMainLoop()
                err = GetLastError();
                ASSERT(FALSE);
             }
-            ProcessRx();
+				if(m_bDownloadMode) {
+					DownloadRx();
+				}
+				else {
+					ProcessRx();
+				}
             DidSomething = TRUE;
          }
 
@@ -661,12 +681,18 @@ void Comm::ProcessRx()
                            pErrMsg->Format("The Xcat NAK'ed\n"
                                            "Command: 0x%02X, 0x%02X\n",
                                            mTxHead->Hdr.Cmd,mTxHead->Data[0]);
+
                            if(!m_pMainWnd->PostMessage(ID_COMM_ERROR,0,
                                                        (LPARAM) pErrMsg)) 
                            {
                               ASSERT(FALSE);
                            }
                         }
+                        if(mTxHead != NULL) {
+									LOG(("The Xcat NAK'ed Command: 0x%02X, 0x%02X\n",
+                                mTxHead->Hdr.Cmd,mTxHead->Data[0]));
+								}
+
                         if(tracecounter++ > 64) {
                            tracecounter = 0;
                            TRACE("N\n");
@@ -802,6 +828,48 @@ CE_TXFULL   The application tried to transmit a character, but the output buffer
       }
    }
 }
+
+void Comm::DownloadRx()
+{
+   for( ; ; ) {
+      mTotalRawBytes += mBytesRead;
+		if(mBytesRead > 0) {
+			if(!m_pMainWnd->PostMessage(ID_DOWNLOAD_CHAR,0,(LPARAM) mRxBuf[0])){
+				ASSERT(FALSE);
+			}
+		}
+
+      DWORD RxErrors;
+      COMSTAT ComStat;
+
+      if(!ClearCommError(mComDev,&RxErrors,&ComStat)){
+         DWORD err = GetLastError();
+         ASSERT(FALSE);
+      }
+
+      if(RxErrors & CE_RXOVER){
+         mRxEventsLost++;
+      }
+      if(RxErrors & CE_OVERRUN){
+         mRxEventsLost++;
+      }
+      if(RxErrors & CE_TXFULL){
+         mTxEventsLost++;
+      }
+
+      mTotalReadCalls++;
+      if(!ReadFile(mComDev,mRxBuf,1,&mBytesRead,&mRxOverlapped)){
+         DWORD err = GetLastError();
+         if(err == ERROR_IO_PENDING){
+            return;
+         }
+         else {
+            ASSERT(FALSE);
+         }
+      }
+   }
+}
+
 
 
 void InitMsgHeader(CI_V_Hdr *pHdr,BYTE To,BYTE Cmd)
