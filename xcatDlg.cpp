@@ -1,6 +1,13 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.14  2008/06/01 14:01:54  Skip
+// 1. Added code to display the loader's firmware version if available.
+// 2. Added code to round transmitter offset to OnManualSet.
+// 3. Modified CAbout::SetActive to always request firmware version info.
+// 4. Enabled Palomar control system to be selected for firmware > 0.30.
+// 5. Added code to configure I/O 7 as a PTT input in Palomar mode.
+//
 // Revision 1.13  2008/05/13 15:43:51  Skip
 // Added support for the new debug variables in 0.29 (srxlen (Palomar
 // code debug var), wd_count, bo_count and unk_count.
@@ -324,7 +331,21 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 				gFirmwareVer = atoi((char *) &pMsg->Data[5]);
 				gFirmwareVer += 100 * atoi((char *) &pMsg->Data[3]);
 				g_bHaveFWVer = TRUE;
+				int SlashIndex;
+				if((SlashIndex = gFirmwareVerString.Find('/')) != -1) {
+					gLoaderVerString = "Loader Ver: ";
+					gLoaderVerString += gFirmwareVerString.Mid(SlashIndex+1);
+					gFirmwareVerString = gFirmwareVerString.Left(SlashIndex);
+				}
+
             if(GetActivePage() == &CAbout) {
+					if(gLoaderVerString.IsEmpty()) {
+						CAbout.GetDlgItem(IDC_LOADER_VER)->ShowWindow(SW_HIDE);
+					}
+					else {
+						CAbout.GetDlgItem(IDC_LOADER_VER)->SetWindowText(gLoaderVerString);
+						CAbout.GetDlgItem(IDC_LOADER_VER)->ShowWindow(SW_SHOWNORMAL);
+					}
                CAbout.GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(gFirmwareVerString);
             }
             break;
@@ -857,7 +878,7 @@ void ManualPage::OnManualSet()
 
    if(mForcedSet || gTxOffsetFreq != mLastTxOffsetFreq) {
       mLastTxOffsetFreq = gTxOffsetFreq;
-      CComm.SetTxOffset((int)(gTxOffsetFreq * 1000000.0));
+      CComm.SetTxOffset((int)((gTxOffsetFreq * 1000000.0) + .5));
    }
 
    if(mForcedSet || gTxOffset != TxOffset) {
@@ -2196,7 +2217,8 @@ void CAbout::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CAbout, CPropertyPage)
    //{{AFX_MSG_MAP(CAbout)
-   //}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_UPDATE_FIRMWARE, OnUpdateFirmware)
+	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2205,11 +2227,17 @@ END_MESSAGE_MAP()
 
 BOOL CAbout::OnSetActive() 
 {
-   if(!g_bHaveFWVer)
-   {
-      CComm.RequestFWVer();
-   }
-	else {
+// Always request firmware version, we may have changed radions since
+// the last time we were here...
+	CComm.RequestFWVer();
+   if(g_bHaveFWVer) {
+		if(gLoaderVerString.IsEmpty()) {
+			GetDlgItem(IDC_LOADER_VER)->ShowWindow(SW_HIDE);
+		}
+		else {
+			GetDlgItem(IDC_LOADER_VER)->SetWindowText(gLoaderVerString);
+			GetDlgItem(IDC_LOADER_VER)->ShowWindow(SW_SHOWNORMAL);
+		}
 		GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(gFirmwareVerString);
 	}
 
@@ -2221,6 +2249,19 @@ BOOL CAbout::OnSetActive()
 
    return CPropertyPage::OnSetActive();
 }
+
+void CAbout::OnUpdateFirmware() 
+{
+	CFileDialog dlg(TRUE,".hex",NULL,OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,
+						 "Firmware image files (*.hex)|*.hex|", NULL);
+
+   if(dlg.DoModal() == IDOK) {
+		CString Temp = dlg.GetPathName();
+		
+
+   }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CDebugMsgs property page
 
@@ -2641,7 +2682,7 @@ void CConfigure::OnSetConfig()
 
 		if((gConfig[0] & CONFIG_CTRL_MASK) == CONFIG_CACTUS) {
 			CString ErrMsg;
-			if(gFirmwareVer >= 27) {
+			if(gFirmwareVer >= 27 && gFirmwareVer < 30) {
 				ErrMsg.Format("Warning: Palomar Telcom support was dropped\n"
 								  "in Xcat firmware V 0.27.  Please\n"
 								  "contact wb6ymh@cox.net for Xcat firmware\n"
@@ -2730,6 +2771,7 @@ void CConfigure::ConfigMsgRx(unsigned char *Config)
    EnableSplitItems();
 	UpdateUFasSquelch();
 	UpdateEnableVolumePot();
+	UpdateIO5and7();
 
    UpdateData(FALSE);
 }
@@ -3065,9 +3107,33 @@ void CConfigure::UpdateUFasSquelch()
 	pRB->EnableWindow(mControlSys.GetCurSel() == 1);
 }
 
+void CConfigure::UpdateIO5and7()
+{
+// Gray out Out 5 and 7 in Palomar mode
+	if(mControlSys.GetCurSel() < 2) {
+	// UF5 = user selection
+		int Save = mOut5.GetCurSel();
+		mOut5.EnableWindow(TRUE);
+		mOut5.DeleteString(1);
+		mOut5.AddString("User Output");
+		mOut5.SetCurSel(Save);
+		mOut7.EnableWindow(TRUE);
+	}
+	else {
+	// UF5 = PTT output, UF7 = PTT input
+		mOut5.EnableWindow(FALSE);
+		mOut5.DeleteString(1);
+		mOut5.AddString("PTT Output");
+		mOut5.SetCurSel(1);
+		mOut7.EnableWindow(FALSE);
+		mOut7.SetCurSel(0);
+	}
+}
+
 void CConfigure::OnSelchangeControlSys() 
 {
 	UpdateUFasSquelch();
+	UpdateIO5and7();
 }
 
 BOOL CAbout::OnInitDialog() 
@@ -3429,4 +3495,5 @@ void CCommSetup1::OnSet()
 		CPropertyPage::OnOK();
 	}
 }
+
 
