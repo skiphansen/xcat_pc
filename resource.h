@@ -67,6 +67,7 @@
 #define IDC_FIRMWARE_VER                1018
 #define IDC_OUT_5                       1018
 #define IDC_OUT_3                       1019
+#define IDC_LOADER_VER                  1019
 #define IDC_PL_SCAN                     1020
 #define IDC_OUT_6                       1020
 #define IDC_OUT_4                       1021
@@ -113,6 +114,7 @@
 #define IDC_SQUELCH_LABEL               1053
 #define IDC_SCAN_MODE8                  1054
 #define IDC_VOLUME                      1054
+#define IDC_UPDATE_FIRMWARE             1054
 #define IDC_SCAN_MODE9                  1055
 #define IDC_VOLUME_LABEL                1055
 #define IDC_CHECK14                     1056
@@ -149,7 +151,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1054
+#define _APS_NEXT_CONTROL_VALUE         1055
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

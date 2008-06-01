@@ -1,4 +1,7 @@
 // $Log: comm.h,v $
+// Revision 1.10  2008/06/01 13:55:22  Skip
+// Beginnings of download hex support.
+//
 // Revision 1.9  2008/02/02 17:58:21  Skip
 // Added support for volume pot (not tested).
 //
@@ -97,7 +100,7 @@ public:
    friend class CComstats1;
    Comm();
    ~Comm();
-   BOOL Init(int ComPort = -1, int BaudRate = -1);
+   BOOL Init(int ComPort = -1, int BaudRate = -1, bool bDownloadMode = 0);
    void ClearStats();
    void SendMessage(AppMsg *pMsg);
    void SetFreq(double Freq);
@@ -185,11 +188,13 @@ protected:
    bool mLastWasRetry;
    struct _timeb mTxTimeout;
    bool m_bReportErrors;
+	bool m_bDownloadMode;
    CWnd* m_pMainWnd;
 
    // implementation
 protected:
    void ProcessRx();
+	void DownloadRx();
    void SendNextMessage(bool bRetry = FALSE);
    static UINT RxThreadControl(LPVOID pCommClass);
    void IOThreadMainLoop();

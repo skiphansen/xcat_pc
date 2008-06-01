@@ -79,7 +79,7 @@ IDR_BATWING             ICON    DISCARDABLE     "res\\xcat.ico"
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 200, 138
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 242, 206
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
 FONT 8, "MS Sans Serif"
@@ -87,13 +87,14 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
     LTEXT           "Xcat PC Control Program",IDC_STATIC,61,10,119,8,
                     SS_NOPREFIX
-    LTEXT           "Copyright (C) 2004, 2005, 2006, 2007",IDC_STATIC,61,50,
+    LTEXT           "Copyright (C) 2004 ... 2008 WB6YMH",IDC_STATIC,61,20,
                     119,8
-    LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,40,119,8,
+    LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,50,119,8,
                     SS_NOPREFIX
-    LTEXT           "Compiled: ",IDC_COMPILED,61,30,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.23",IDC_STATIC,61,20,119,8,SS_NOPREFIX
-    LTEXT           "WB6YMH",IDC_STATIC,61,60,119,8
+    LTEXT           "Compiled: ",IDC_COMPILED,61,40,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.23",IDC_STATIC,61,30,119,8,SS_NOPREFIX
+    PUSHBUTTON      "Update Firmware",IDC_UPDATE_FIRMWARE,92,135,58,14
+    LTEXT           "Loader Ver: N/A",IDC_LOADER_VER,61,60,119,8,SS_NOPREFIX
 END
 
 IDD_VFO DIALOGEX 0, 0, 242, 205
@@ -432,9 +433,9 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 193
+        RIGHTMARGIN, 235
         TOPMARGIN, 7
-        BOTTOMMARGIN, 131
+        BOTTOMMARGIN, 199
     END
 
     IDD_VFO, DIALOG
@@ -586,8 +587,8 @@ BEGIN
 0x6944, 0x6967, 0x6174, 0x206c, 0x6f70, 0x2074, 0x4353, 0x4b4c, "\000" 
     IDC_OUT_4, 0x403, 12, 0
 0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
-    IDC_OUT_7, 0x403, 12, 0
-0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
+    IDC_OUT_7, 0x403, 10, 0
+0x5450, 0x2054, 0x6e49, 0x7570, 0x0074, 
     IDC_OUT_7, 0x403, 12, 0
 0x7355, 0x7265, 0x4f20, 0x7475, 0x7570, 0x0074, 
     0
