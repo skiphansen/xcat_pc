@@ -1,4 +1,7 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.9  2008/06/01 14:03:09  Skip
+// Added UpdateIO5and7, OnUpdateFirmware.
+//
 // Revision 1.8  2008/02/02 17:58:22  Skip
 // Added support for volume pot (not tested).
 //
@@ -132,6 +135,7 @@ protected:
 	void OnSelchangeOut3_4_6(int NewSelection);
 	void UpdateUFasSquelch();
 	void UpdateEnableVolumePot();
+	void UpdateIO5and7();
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -465,7 +469,8 @@ protected:
    // Generated message map functions
    //{{AFX_MSG(CAbout)
    virtual BOOL OnInitDialog();
-   //}}AFX_MSG
+	afx_msg void OnUpdateFirmware();
+	//}}AFX_MSG
    DECLARE_MESSAGE_MAP()
 
 };
