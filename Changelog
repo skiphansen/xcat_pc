@@ -1,4 +1,17 @@
 ####################################
+Changes in version 0.23+ 5/24/2008
+
+Minor enhancements: 
+1. Added code to display the loader's firmware version in the about box 
+   when available (XCat firmware V 0.30 and later).
+2. Modified CAbout::SetActive to always request firmware version info.
+3. Enabled Palomar control system to be selected for firmware > 0.30.
+4. Added code to configure I/O 7 as a PTT input in Palomar mode.
+
+Bug fixes:
+1. Added code to round transmitter offset to OnManualSet.
+
+####################################
 Changes in version 0.23 2/2/2008
 
 Bug fixes:
