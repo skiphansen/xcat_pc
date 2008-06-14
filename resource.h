@@ -20,6 +20,7 @@
 #define IDD_MODE_SEL                    138
 #define IDD_NAME_EDIT                   144
 #define IDD_COMM_SETUP1                 145
+#define IDD_DOWNLOAD                    147
 #define IDC_COM1                        253
 #define IDC_COM2                        254
 #define IDC_COM3                        255
@@ -35,6 +36,7 @@
 #define IDC_MODE                        1004
 #define IDC_XCAT_ADR                    1004
 #define IDC_NAME                        1004
+#define IDC_MSGS                        1004
 #define IDC_EDIT2                       1005
 #define IDC_SCAN_MODE1                  1005
 #define IDC_TX_OFFSET_FREQ              1005
@@ -117,10 +119,13 @@
 #define IDC_UPDATE_FIRMWARE             1054
 #define IDC_SCAN_MODE9                  1055
 #define IDC_VOLUME_LABEL                1055
+#define IDC_DOWNLOAD_ADR                1055
 #define IDC_CHECK14                     1056
 #define IDC_SCAN_MODE23                 1056
+#define IDC_UPDATED_BLOCKS              1056
 #define IDC_CHECK15                     1057
 #define IDC_SCAN_MODE25                 1057
+#define IDC_VERIFIED_BLOCKS             1057
 #define IDC_CHECK16                     1058
 #define IDC_SCAN_MODE17                 1058
 #define IDC_CHECK17                     1059
@@ -149,9 +154,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_RESOURCE_VALUE        148
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1055
+#define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

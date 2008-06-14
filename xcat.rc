@@ -92,8 +92,8 @@ BEGIN
     LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,50,119,8,
                     SS_NOPREFIX
     LTEXT           "Compiled: ",IDC_COMPILED,61,40,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.23",IDC_STATIC,61,30,119,8,SS_NOPREFIX
-    PUSHBUTTON      "Update Firmware",IDC_UPDATE_FIRMWARE,92,135,58,14
+    LTEXT           "Version 0.24",IDC_STATIC,61,30,119,8,SS_NOPREFIX
+    PUSHBUTTON      "Update Firmware",IDC_UPDATE_FIRMWARE,86,135,70,17
     LTEXT           "Loader Ver: N/A",IDC_LOADER_VER,61,60,119,8,SS_NOPREFIX
 END
 
@@ -375,6 +375,21 @@ BEGIN
     LTEXT           "Hex",IDC_STATIC,110,60,40,14,SS_CENTERIMAGE
 END
 
+IDD_DOWNLOAD DIALOG DISCARDABLE  0, 0, 224, 221
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Update Firmware"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,86,200,50,14
+    EDITTEXT        IDC_MSGS,6,40,210,151,ES_MULTILINE | ES_AUTOHSCROLL
+    LTEXT           "",IDC_DOWNLOAD_ADR,124,5,30,8
+    LTEXT           "Downloading address:",IDC_STATIC,50,5,71,8
+    LTEXT           "Blocks updated:",IDC_STATIC,69,15,52,8
+    LTEXT           "Blocks verified:",IDC_STATIC,72,25,49,8
+    LTEXT           "0",IDC_UPDATED_BLOCKS,124,15,30,8
+    LTEXT           "0",IDC_VERIFIED_BLOCKS,124,25,30,8
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -500,6 +515,14 @@ BEGIN
         RIGHTMARGIN, 194
         TOPMARGIN, 7
         BOTTOMMARGIN, 144
+    END
+
+    IDD_DOWNLOAD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 217
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 214
     END
 END
 #endif    // APSTUDIO_INVOKED
