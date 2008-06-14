@@ -1,4 +1,8 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.10  2008/06/14 14:36:47  Skip
+// 1. Added pDownloader member to CAbout class.
+// 2. Added OnDownloadChar member to CXcatDlg class.
+//
 // Revision 1.9  2008/06/01 14:03:09  Skip
 // Added UpdateIO5and7, OnUpdateFirmware.
 //
@@ -50,6 +54,7 @@
 //
 #if !defined(AFX_XCATDIALOG_H__712BDAC8_AF96_4012_A7AA_75BC2D3AC619__INCLUDED_)
 #define AFX_XCATDIALOG_H__712BDAC8_AF96_4012_A7AA_75BC2D3AC619__INCLUDED_
+#include "loadhex.h"
 
 #if _MSC_VER > 1000
 #pragma once
@@ -448,6 +453,7 @@ class CAbout : public CPropertyPage
 public:
    CAbout();
    ~CAbout();
+	CLoadHex *pDownloader;
 
 // Dialog Data
    //{{AFX_DATA(CAbout)
@@ -571,6 +577,7 @@ protected:
 
    LRESULT OnRxMsg(WPARAM wParam,LPARAM lParam);
    LRESULT OnCommError(WPARAM /* wParam*/, LPARAM lParam);
+	LRESULT OnDownloadChar(WPARAM /* wParam*/, LPARAM lParam);
 };
 
 /////////////////////////////////////////////////////////////////////////////
