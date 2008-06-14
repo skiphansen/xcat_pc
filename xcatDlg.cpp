@@ -1,6 +1,20 @@
 // XcatDialog.cpp : implementation file
 //
 // $Log: xcatDlg.cpp,v $
+// Revision 1.15  2008/06/14 14:35:11  Skip
+// 1. Added firmware update support to the About page.
+// 2. Modified OnRxMsg to set gRawVerString with version number received
+//    from Xcat (Same as gVerString less "Firmware version: ".
+// 3. Modified OnRxMsg to call FwVersionUpated when firmware version is
+//    received from the Xcat and the downloader is active.
+// 4. Modified OnRxMsg to call the downloader's CommSetupAck function when
+//    an ack is received for a comm setup message and the download is active.
+// 5. Added routine to pass ID_DOWNLOAD_CHAR events to the downloader
+//    classes OnDownloadChar when the downloader is active.
+// 6. Modified OnTimer to call the downloader classes OnTimer function when
+//    the downloader is active.
+// 7. Modified SetDPL to handle the carrier squelch correctly.
+//
 // Revision 1.14  2008/06/01 14:01:54  Skip
 // 1. Added code to display the loader's firmware version if available.
 // 2. Added code to round transmitter offset to OnManualSet.
@@ -232,6 +246,7 @@ BEGIN_MESSAGE_MAP(CXcatDlg, CPropertySheet)
    //}}AFX_MSG_MAP
    ON_MESSAGE(ID_RX_MSG,OnRxMsg)
    ON_MESSAGE(ID_COMM_ERROR,OnCommError)
+   ON_MESSAGE(ID_DOWNLOAD_CHAR,OnDownloadChar)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -266,7 +281,7 @@ BOOL CXcatDlg::OnInitDialog()
    return bResult;
 }
 
-LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
+LRESULT CXcatDlg::OnRxMsg(WPARAM wParam,LPARAM lParam)
 {
    AppMsg *p= (AppMsg *) lParam;
    CI_VMsg *pMsg = (CI_VMsg *) &p->Hdr;
@@ -326,17 +341,18 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 
          case 0x82:  // get firmware version number response 
          {  pMsg->Data[p->DataLen - sizeof(CI_V_Hdr)-1] = 0;
-            gFirmwareVerString.Format("Firmware version: %s",(char *) &pMsg->Data[1]);
+				gRawVerString = (char *) &pMsg->Data[1];
 			// format "V x.xx"
 				gFirmwareVer = atoi((char *) &pMsg->Data[5]);
 				gFirmwareVer += 100 * atoi((char *) &pMsg->Data[3]);
 				g_bHaveFWVer = TRUE;
 				int SlashIndex;
-				if((SlashIndex = gFirmwareVerString.Find('/')) != -1) {
+				if((SlashIndex = gRawVerString.Find('/')) != -1) {
 					gLoaderVerString = "Loader Ver: ";
-					gLoaderVerString += gFirmwareVerString.Mid(SlashIndex+1);
-					gFirmwareVerString = gFirmwareVerString.Left(SlashIndex);
+					gLoaderVerString += gRawVerString.Mid(SlashIndex+1);
+					gRawVerString = gRawVerString.Left(SlashIndex);
 				}
+            gFirmwareVerString.Format("Firmware version: %s",gRawVerString);
 
             if(GetActivePage() == &CAbout) {
 					if(gLoaderVerString.IsEmpty()) {
@@ -347,6 +363,9 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
 						CAbout.GetDlgItem(IDC_LOADER_VER)->ShowWindow(SW_SHOWNORMAL);
 					}
                CAbout.GetDlgItem(IDC_FIRMWARE_VER)->SetWindowText(gFirmwareVerString);
+					if(CAbout.pDownloader != NULL) {
+						CAbout.pDownloader->FwVersionUpdated();
+					}
             }
             break;
          }
@@ -384,18 +403,24 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
          }
 
 			case 0x8a:	// Ack for communications parameter set message
-				gXcatAdr = CommSetup.mNewXcatAdr;
-				if(gBaudrate != CommSetup.mNewBaudrate || 
-					gComPort != CommSetup.mNewComPort) 
-				{
-					gBaudrate = CommSetup.mNewBaudrate;
-					gComPort = CommSetup.mNewComPort;
-					if(!CComm.Init(gComPort,gBaudrate)) {
-						CString ErrMsg;
-						ErrMsg.Format("Unable to open COM%d,\n"
-										  "please check that no other\n"
-										  "programs are using COM%d.",gComPort,gComPort);
-						AfxMessageBox(ErrMsg);
+				if(GetActivePage() == &CAbout && CAbout.pDownloader != NULL) {
+					CAbout.pDownloader->CommSetupAck(wParam == 0);
+				}
+				else if(GetActivePage() == &CommSetup) {
+					gXcatAdr = CommSetup.mNewXcatAdr;
+					if(gBaudrate != CommSetup.mNewBaudrate || 
+						gComPort != CommSetup.mNewComPort) 
+					{
+						gBaudrate = CommSetup.mNewBaudrate;
+						gComPort = CommSetup.mNewComPort;
+						if(!CComm.Init(gComPort,gBaudrate)) {
+							CString ErrMsg;
+							ErrMsg.Format("Unable to open COM%d,\n"
+											  "please check that no other\n"
+											  "programs are using COM%d.",gComPort,
+											  gComPort);
+							AfxMessageBox(ErrMsg);
+						}
 					}
 				}
 				break;
@@ -405,6 +430,15 @@ LRESULT CXcatDlg::OnRxMsg(WPARAM /* wParam*/, LPARAM lParam)
    delete p;
    return 0;
 }
+
+LRESULT CXcatDlg::OnDownloadChar(WPARAM /* wParam*/, LPARAM lParam)
+{
+	if(GetActivePage() == &CAbout  && CAbout.pDownloader != NULL) {
+		CAbout.pDownloader->OnDownloadChar((char) lParam);
+	}
+	return 0;
+}
+
 
 LRESULT CXcatDlg::OnCommError(WPARAM /* wParam*/, LPARAM lParam)
 {
@@ -427,6 +461,9 @@ void CXcatDlg::OnTimer(UINT nIDEvent)
       }
    }
    
+	if(GetActivePage() == &CAbout && CAbout.pDownloader != NULL) {
+		CAbout.pDownloader->OnTimer();
+	}
    CPropertySheet::OnTimer(nIDEvent);
 }
 
@@ -748,15 +785,22 @@ void SetCodePlugRxFrequency(double RxFreq,unsigned char *ModeData)
 
 void SetDPL(int Index,unsigned char *Data)
 {
-	unsigned int DplCode = dplfunnybits[Index].dpl;
+	if(Index == 0) {
+	// Carrier
+		Data[0] = 0xff;
+		Data[1] = 0xdf;
+	}
+	else {
+		unsigned int DplCode = dplfunnybits[Index-1].dpl;
 
-	Data[0] = (dpltable[(DplCode & 0007)]) << 4;
-	Data[0] |= (dpltable[(DplCode & 0070) >> 3]) << 1;
-	Data[0] |= (dpltable[(DplCode & 0700) >> 6] & 0004) >> 2;
+		Data[0] = (dpltable[(DplCode & 0007)]) << 4;
+		Data[0] |= (dpltable[(DplCode & 0070) >> 3]) << 1;
+		Data[0] |= (dpltable[(DplCode & 0700) >> 6] & 0004) >> 2;
 
-	Data[1] = 0xe0;
-	Data[1] |= (dpltable[(DplCode & 0700) >> 6] & 0003) << 3;
-	Data[1] |= dplfunnybits[gRxDCS-1].funnybits;
+		Data[1] = 0xe0;
+		Data[1] |= (dpltable[(DplCode & 0700) >> 6] & 0003) << 3;
+		Data[1] |= dplfunnybits[Index-1].funnybits;
+	}
 }
 
 
@@ -813,8 +857,8 @@ void ManualPage::OnManualSet()
 	if(mbTxDPL) {
 		mLastEncodePL = -1.0;	// clobber last encode PL tone
 		gTxDCS = mTxPL.GetCurSel();
-		SetDPL(gTxDCS-1,&ModeData[4]);
-		if(mbInvTxDPL) {
+		SetDPL(gTxDCS,&ModeData[4]);
+		if(gTxDCS != 0 && mbInvTxDPL) {
 			ModeData[4] = 0x80;
 		}
 	}
@@ -822,7 +866,7 @@ void ManualPage::OnManualSet()
 	if(mbRxDPL) {
 		mLastDecodePL = -1.0;	// clobber last decode PL tone
 		gRxDCS = mRxPL.GetCurSel();
-		SetDPL(gRxDCS-1,&ModeData[6]);
+		SetDPL(gRxDCS,&ModeData[6]);
 		if(mbInvRxDPL) {
 			ModeData[6] |= 0x80;
 		}
@@ -1632,7 +1676,7 @@ CBandScan::CBandScan() : CPropertyPage(CBandScan::IDD)
    m_bHaveSignal = FALSE;
    m_bListSelected = FALSE;
    mPlFreq = 0;
-   mDPlFreq = 0;
+   mDPlFreq = 1;
    mLastBottom = 0.0;
    mLastTop = 0.0;
    //{{AFX_DATA_INIT(CBandScan)
@@ -1875,7 +1919,7 @@ void CBandScan::ChangeDPL()
 {
    UpdateData(TRUE);
 	if(dplfunnybits[mDPlFreq].dpl == 0) {
-		mDPlFreq = 0;
+		mDPlFreq = 1;
 	}
 	mPLFreqText.Format("%03o",dplfunnybits[mDPlFreq].dpl);
    UpdateData(FALSE);
@@ -2200,6 +2244,7 @@ IMPLEMENT_DYNCREATE(CAbout, CPropertyPage)
 
 CAbout::CAbout() : CPropertyPage(CAbout::IDD)
 {
+	pDownloader = NULL;
 }
 
 CAbout::~CAbout()
@@ -2250,16 +2295,14 @@ BOOL CAbout::OnSetActive()
    return CPropertyPage::OnSetActive();
 }
 
+
 void CAbout::OnUpdateFirmware() 
 {
-	CFileDialog dlg(TRUE,".hex",NULL,OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,
-						 "Firmware image files (*.hex)|*.hex|", NULL);
+	pDownloader = new CLoadHex;
 
-   if(dlg.DoModal() == IDOK) {
-		CString Temp = dlg.GetPathName();
-		
-
-   }
+   pDownloader->DoModal();
+	delete pDownloader;
+	pDownloader = NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -3378,34 +3421,8 @@ BOOL CCommSetup1::OnInitDialog()
       pCB->SetCurSel(0);
    }
 
-	int BaudRateSel;
-	switch(gBaudrate) {
-		case 1200:
-			BaudRateSel = 0;
-			break;
-
-		case 2400:
-			BaudRateSel = 1;
-			break;
-
-		case 4800:
-			BaudRateSel = 2;
-			break;
-
-		case 9600:
-			BaudRateSel = 3;
-			break;
-
-		default:
-			gBaudrate = 19200;
-		// Intentional fall through
-		case 19200:
-			BaudRateSel = 4;
-			break;
-	}
-
    pCB = (CComboBox*) GetDlgItem(IDC_BAUDRATE);
-	pCB->SetCurSel(BaudRateSel);
+	pCB->SetCurSel(GetBaudrateValue(gBaudrate));
 
 	mXCatAdr.Format("%02X",gXcatAdr);
 
