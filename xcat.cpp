@@ -1,6 +1,11 @@
 // xcat.cpp : Defines the class behaviors for the application.
 //
 // $Log: xcat.cpp,v $
+// Revision 1.9  2008/06/14 14:24:11  Skip
+// 1. Moved logging of version number, compiled date to after point where
+//    log file is opened.
+// 2. Added GetBaudrateValue.
+//
 // Revision 1.8  2008/06/01 13:56:13  Skip
 // Added gLoaderVerString.
 //
@@ -120,6 +125,7 @@ int g_bHaveModeData = FALSE;
 unsigned char gConfig[CONFIG_LEN];
 int g_bHaveConfig = FALSE;
 int gFirmwareVer = 0;
+CString gRawVerString;
 CString gFirmwareVerString;
 CString gLoaderVerString;
 
@@ -194,15 +200,6 @@ BOOL CXcatApp::InitInstance()
    //  of your final executable, you should remove from the following
    //  the specific initialization routines you do not need.
 
-   time_t ltime;
-   struct tm *tm;
-
-   time(&ltime);
-   tm = localtime(&ltime);
-
-   LOG(("Xcat compiled " __DATE__ " starting on %s %d, %d\n",
-        MonthNames[tm->tm_mon],tm->tm_mday,tm->tm_year+1900));
-
 #ifdef _AFXDLL
    Enable3dControls();        // Call this when using MFC in a shared DLL
 #else
@@ -215,7 +212,16 @@ BOOL CXcatApp::InitInstance()
 
    RegRestoreVar("Config",RegVars,0);
 
-   CXcatDlg dlg("cat");
+   time_t ltime;
+   struct tm *tm;
+
+   time(&ltime);
+   tm = localtime(&ltime);
+
+   LOG(("Xcat compiled " __DATE__ " starting %d/%d/%d\n",
+        tm->tm_mon+1,tm->tm_mday,tm->tm_year+1900));
+   
+	CXcatDlg dlg("cat");
 
    m_pMainWnd = &dlg;
    int nResponse = dlg.DoModal();
@@ -394,5 +400,35 @@ void LogHex(void *AdrIn,int Len)
       LogIt("%04x: %s\n",Adr + i,Line);
       i += 16;
    }
+}
+
+int GetBaudrateValue(int Baudrate)
+{
+	int BaudRateSel;
+
+	switch(Baudrate) {
+		case 1200:
+			BaudRateSel = 0;
+			break;
+
+		case 2400:
+			BaudRateSel = 1;
+			break;
+
+		case 4800:
+			BaudRateSel = 2;
+			break;
+
+		case 9600:
+			BaudRateSel = 3;
+			break;
+
+		case 19200:
+		default:
+			BaudRateSel = 4;
+			break;
+	}
+	
+	return BaudRateSel;
 }
 
