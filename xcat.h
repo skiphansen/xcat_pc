@@ -1,6 +1,9 @@
 // xcat.h : main header file for the XCAT application
 //
 // $Log: xcat.h,v $
+// Revision 1.10  2008/06/14 14:26:05  Skip
+// Added GetBaudrateValue and gRawVerString.
+//
 // Revision 1.9  2008/06/01 13:57:15  Skip
 // Added gLoaderVerString, ID_DOWNLOAD_CHAR.
 //
@@ -87,6 +90,7 @@ extern unsigned char gConfig[CONFIG_LEN];
 extern int g_bHaveConfig;
 extern bool g_bHaveFWVer;
 extern int gFirmwareVer;
+extern CString gRawVerString;
 extern CString gFirmwareVerString;
 extern CString gLoaderVerString;
 extern int gLastModeSel;
@@ -173,6 +177,7 @@ char *Err2String(int err);
 
 void LogIt(char *fmt,...);
 void LogHex(void *AdrIn,int Len);
+int GetBaudrateValue(int Baudrate);
 
 #define LOG(x)       LogIt x
 #define LOG_HEX(x,y) LogHex(x,y)
