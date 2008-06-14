@@ -1,4 +1,8 @@
 // $Log: comm.h,v $
+// Revision 1.11  2008/06/14 14:17:51  Skip
+// 1. Added download mode support (SendRaw, SetBreak).
+// 2. Made m_bReportErrors public.
+//
 // Revision 1.10  2008/06/01 13:55:22  Skip
 // Beginnings of download hex support.
 //
@@ -124,6 +128,8 @@ public:
 	void SetCommParameters(int Baudrate,int Adr);
 	void SetSquelchLevel(int SquelchLevel);
 	void SetVolumeLevel(int VolumeLevel);
+	void SendRaw(char *Data,int Len);
+	void SetBreak(bool bSet);
 
 	bool CommunicationsUp() { return m_bReportErrors; }
 public:
@@ -131,6 +137,7 @@ public:
    BYTE mOurAdr;
    DCB mDcb;            // device control block for our COM port
    int mComPort;        // Our COM port number
+   bool m_bReportErrors;
 
 protected:
 
@@ -187,7 +194,6 @@ protected:
    int mTicker;
    bool mLastWasRetry;
    struct _timeb mTxTimeout;
-   bool m_bReportErrors;
 	bool m_bDownloadMode;
    CWnd* m_pMainWnd;
 

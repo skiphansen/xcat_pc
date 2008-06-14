@@ -1,4 +1,8 @@
 // $Log: Comm.cpp,v $
+// Revision 1.12  2008/06/14 14:17:51  Skip
+// 1. Added download mode support (SendRaw, SetBreak).
+// 2. Made m_bReportErrors public.
+//
 // Revision 1.11  2008/06/01 13:55:04  Skip
 // 1. Beginnings of download hex support.
 // 2. Added code to log Nak'ed commands.
@@ -225,7 +229,8 @@ BOOL Comm::Init(int ComPort, int Baudrate,bool bDownloadMode)
 
    char ComPortName[6];
    sprintf(ComPortName,"COM%d",ComPort);
-   LOG(("Opening %s at %d baud.\n",ComPortName,Baudrate));
+   LOG(("Opening %s at %d baud in %s mode.\n",ComPortName,Baudrate,
+		  bDownloadMode ? "download" : "normal"));
    mComDev = CreateFile(ComPortName,GENERIC_READ | GENERIC_WRITE,0,NULL,
                    OPEN_EXISTING,FILE_FLAG_OVERLAPPED,0);
    if(mComDev == INVALID_HANDLE_VALUE){
@@ -290,6 +295,11 @@ BOOL Comm::Init(int ComPort, int Baudrate,bool bDownloadMode)
       DWORD err = GetLastError();
       return 1;
    }
+
+	if(m_bDownloadMode) {
+	// Init with break active until we get the Xcat's attention
+		SetCommBreak(mComDev);
+	}
 
    // Start the IO Thread
 
@@ -377,7 +387,7 @@ void Comm::SendNextMessage(bool bRetry)
 			pMsg->Hdr.Cmd = 0xaa;
 			pMsg->Data[0] = 0x8a;
 
-			if(!m_pMainWnd->PostMessage(ID_RX_MSG,0,(LPARAM) pMsg)){
+			if(!m_pMainWnd->PostMessage(ID_RX_MSG,1,(LPARAM) pMsg)){
 				ASSERT(FALSE);
 			}
 		}
@@ -819,7 +829,7 @@ CE_TXFULL   The application tried to transmit a character, but the output buffer
       mTotalReadCalls++;
       if(!ReadFile(mComDev,mRxBuf,1 /* mBytesToRead*/ ,&mBytesRead,&mRxOverlapped)){
          DWORD err = GetLastError();
-         if(err == ERROR_IO_PENDING){
+         if(err == ERROR_IO_PENDING || err == ERROR_OPERATION_ABORTED){
             return;
          }
          else {
@@ -1271,4 +1281,29 @@ void Comm::SetVolumeLevel(int VolumeLevel)
 }
 
 
+void Comm::SendRaw(char *Data,int Len)
+{
+	if(!WriteFile(mComDev,Data,Len,&mBytesSent,&mTxOverlapped)) {
+		DWORD err = GetLastError();
+		if(err != ERROR_IO_PENDING){
+			ASSERT(FALSE);
+			mSendErrors++;
+			mComState = IDLE;
+			mTxState = TX_IDLE;
+		}
+		else {
+			mTxFramesSent++;
+		}
+	}
+}
+
+void Comm::SetBreak(bool bSet)
+{
+	if(bSet) {
+		SetCommBreak(mComDev);
+	}
+	else {
+		ClearCommBreak(mComDev);
+	}
+}
 
