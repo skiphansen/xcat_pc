@@ -141,6 +141,10 @@ SOURCE=.\comm.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\loadhex.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Resource.h
 # End Source File
 # Begin Source File
