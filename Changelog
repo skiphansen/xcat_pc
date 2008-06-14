@@ -1,4 +1,20 @@
 ####################################
+Changes in version 0.24 6/14/2008
+
+New features:
+1. Added Update Firmware option to the About Tab.  This feature replaces the
+   loadhex command line utility.  Unlike the command line utility the PC
+   control program restores the Xcat's baudrate and CI-V address to the
+   values set prior to the firmware update.  The modes are not saved and
+   restored since future firmware updates will no longer clobber them.
+
+Bug fixes:
+1. Corrected the "Carrier" selection in Rx DPL and Inverted Rx DPL modes. 
+   Previously attempts to select carrier squelch in DPL mode resulted in 
+   the Syntor being programmed with an invalid DPL code of "000" rather
+   than carrier squelch.
+
+####################################
 Changes in version 0.23+ 5/24/2008
 
 Minor enhancements: 
