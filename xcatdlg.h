@@ -1,4 +1,10 @@
 // $Log: xcatdlg.h,v $
+// Revision 1.11  2009/01/06 23:23:42  Skip
+// 1. Added support for low power transmit Power Control bit used by some T53 and
+//    T83 model VHF radios.
+// 2. Corrected error in calculation of code plug data for inverted transmit DPL
+//    codes.
+//
 // Revision 1.10  2008/06/14 14:36:47  Skip
 // 1. Added pDownloader member to CAbout class.
 // 2. Added OnDownloadChar member to CXcatDlg class.
@@ -169,6 +175,7 @@ public:
    CComboBox   mRxPL;
    double   mRxFrequency;
    double   mTxOffsetFreq;
+	BOOL	mLowPowerTx;
 	//}}AFX_DATA
 	bool mbRxDPL;
 	bool mbInvRxDPL;

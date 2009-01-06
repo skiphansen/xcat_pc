@@ -126,6 +126,7 @@
 #define IDC_CHECK15                     1057
 #define IDC_SCAN_MODE25                 1057
 #define IDC_VERIFIED_BLOCKS             1057
+#define IDC_LOW_POWER                   1057
 #define IDC_CHECK16                     1058
 #define IDC_SCAN_MODE17                 1058
 #define IDC_CHECK17                     1059
@@ -156,7 +157,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        148
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1057
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

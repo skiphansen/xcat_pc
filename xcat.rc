@@ -92,7 +92,7 @@ BEGIN
     LTEXT           "Firmware Ver: N/A",IDC_FIRMWARE_VER,61,50,119,8,
                     SS_NOPREFIX
     LTEXT           "Compiled: ",IDC_COMPILED,61,40,119,8,SS_NOPREFIX
-    LTEXT           "Version 0.24",IDC_STATIC,61,30,119,8,SS_NOPREFIX
+    LTEXT           "Version 0.25",IDC_STATIC,61,30,119,8,SS_NOPREFIX
     PUSHBUTTON      "Update Firmware",IDC_UPDATE_FIRMWARE,86,135,70,17
     LTEXT           "Loader Ver: N/A",IDC_LOADER_VER,61,60,119,8,SS_NOPREFIX
 END
@@ -141,6 +141,8 @@ BEGIN
                     SS_CENTERIMAGE
     LTEXT           "Squelch",IDC_SQUELCH_LABEL,199,144,27,8,NOT WS_VISIBLE
     LTEXT           "Volume",IDC_VOLUME_LABEL,170,144,24,8,NOT WS_VISIBLE
+    CONTROL         "Low Power Tx",IDC_LOW_POWER,"Button",BS_AUTOCHECKBOX | 
+                    BS_LEFTTEXT | WS_TABSTOP,38,165,61,10
 END
 
 IDD_SCAN_ENABLE DIALOG DISCARDABLE  0, 0, 202, 151

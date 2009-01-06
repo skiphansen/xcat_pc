@@ -1,4 +1,16 @@
 ####################################
+Changes in version 0.25 7/4/2008
+
+New features:
+1. Added support for low power transmit Power Control bit used by some T53 and 
+   T83 model VHF radios.  
+
+Bug fixes:
+1. Corrected error in calculation of code plug data for inverted transmit DPL
+   codes.
+
+
+####################################
 Changes in version 0.24 6/15/2008
 
 New features:
